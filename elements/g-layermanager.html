@@ -1,0 +1,34 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/core-item/core-item.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+
+<polymer-element name="g-layermanager" attributes="layers map">
+<template>
+<template id="layerList" repeat="{{l in layers}}">
+   <template if="{{l.options.visibility}}">
+     <core-item class="layer" vis="{{l.options.visibility}}"  icon="{{l.options.visibility?'check-box':'check-box-outline-blank'}}" label="{{l.options.config.title}}" on-click="{{toggleLayer}}"><paper-ripple fit></paper-ripple></core-item>
+   </template>
+</template>
+</template>
+
+<script>
+
+Polymer({
+  ready: function() {
+    this.layers = this.layers || [];
+    this.map = this.map || {};
+    this.onMutation(this, this.childrenUpdated);
+    },
+    childrenUpdated: function(observer, mutations) {
+    // getDistributedNodes() has new stuff.
+
+    // Monitor again.
+    this.onMutation(this, this.childrenUpdated);
+    },
+    toggleLayer: function(e,b,c) {
+      var layer = c.templateInstance.model.l; 
+      layer.options.visibility = layer.options.visibility?false:true;
+  }
+  });
+</script>
+</polymer-element>

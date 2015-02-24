@@ -1,0 +1,131 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../bower_components/core-item/core-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/core-label/core-label.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/core-collapse/core-collapse.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<polymer-element name="g-layercatalogus" attributes="layers">
+<template>
+<style>
+.layerItem{
+    min-height:30px;
+}
+.group {
+    margin-left:-20px;
+    min-width: 350px;
+    margin-right:-20px;
+}
+.group core-collapse {
+
+    padding-left:2px;
+    padding-right: 10px;
+}
+core-item {
+    cursor:pointer;
+    word-wrap: normal
+}
+core-collapse {
+    background: rgba(225,225,230,0.4);
+-webkit-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+-moz-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+}
+</style>
+<core-ajax id="getConfig"
+    auto
+    url="{{url}}"
+    handeAs="json"
+    on-core-response="{{handleResponse}}"
+    withCredentials=true
+></core-ajax>
+<template id="layerList" repeat="{{layer in catalogus}}">
+<div class="group"><core-item class="groupTitle" icon="arrow-drop-down" label="{{layer.group}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
+    <core-collapse>
+    <template repeat="{{sub in layer.subgroup}}">    
+    <div class="subGroup"><core-item class="subGroupTitle" icon="arrow-drop-down" label="{{sub.subname}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
+        <core-collapse>
+        <template repeat="{{l in sub.layers}}">
+       <core-item class="layer" vis="{{l.options.visibility}}"  icon="{{l.options.visibility?'check-box':'check-box-outline-blank'}}" label="{{l.options.config.title}}" on-click="{{toggleLayer}}"><paper-ripple fit></paper-ripple></core-item>
+        </template>
+        </core-collapse>
+    </div>
+    </template>
+    <template repeat="{{l in layer.layers}}">
+         <core-item class="layer" vis="{{l.options.visibility}}"  icon="{{l.options.visibility?'check-box':'check-box-outline-blank'}}" label="{{l.options.config.title}}" on-click="{{toggleLayer}}"><paper-ripple fit></paper-ripple></core-item>
+    </template>
+    </core-collapse>
+</div>
+</template>
+</template>
+<script>
+
+Polymer({
+  ready: function() {
+   var doc = '5a10e49a-f5a9-404d-82a5-829388cc8fb3';
+    var user = 'PICO4749XXXX';
+    this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+user+'/config/'+doc;
+    this.layers = this.layers || [];
+    
+  },
+  toggle: function(e) {
+       e.target.icon=e.target.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
+       e.target.parentElement.nextElementSibling.toggle();
+  },
+  toggleLayer: function(e,b,c) {
+      var layer = c.templateInstance.model.l; 
+      layer.options.visibility = layer.options.visibility?false:true;
+  },
+  handleResponse: function(d){
+    
+    var config = JSON.parse(d.detail.response).map.layers; 
+    var makeWms = function(config) {
+        var wms = L.tileLayer.wms(
+            config.source.url,
+            {
+                layers: config.source.featureName,
+                format: config.source.contenttype?config.source.contenttype:'format/png',
+                transparent: config.options.transparent,
+                opacity: config.options.opacity,
+                visibility: config.options.visible,
+                config: config
+            
+            }
+        );        
+        return wms
+    }
+    this.layers = config.map(makeWms);
+    this.catalogus = this.layers.reduce(
+        function(a,l){
+            var group = a.filter(function(d){return d.group == l.options.config.groupName});
+            if(group.length == 0) {
+                if(l.subgroupName) {
+                    a.push({group:l.options.config.groupName,layers:[],subgroup:[{subname:l.options.config.subgroupName,layers:[l]}]});
+                }
+                else {
+                    a.push({group:l.options.config.groupName,subgroup:[],layers:[l]})
+                }
+            }
+            else {
+                if(l.subgroupName) {
+                    var sub = group[0].subgroup.filter(function(d){return d.subname==l.options.config.subgroupName});
+                    if(sub.length == 0) {
+                        group[0].subgroup.push({subname:l.options.config.subgroupName,layers:[l]})
+                    }
+                    else {
+                        sub[0].layers.push(l);
+                    }
+                }
+                else {
+                    group[0].layers.push(l)
+                }
+            }
+            return a;
+        }, []);
+  }
+});
+</script>
+</polymer-element>
