@@ -9,7 +9,7 @@
 <link rel="import" href="./g-cas.html"> 
 <link rel="import" href="./g-layercatalogus.html"> 
 <link rel="import" href="./g-layermanager.html"> 
-  
+<link rel="import" href="../bower_components/core-icons/editor-icons.html">
      
     <script src="../bower_components/leaflet/dist/leaflet.js"></script>     
     <script src="../bower_components/leaflet-hash/leaflet-hash.js"></script>
@@ -129,7 +129,7 @@ html /deep/   #layerlist {
   <g-cas></g-cas>
 </paper-dialog>
 <paper-dialog id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">
-  <g-layercatalogus id="layerConfig" layers="{{layers}}"></g-layercatalogus>
+  <g-layercatalogus id="layerConfig" activeLayers="{{layers}}"></g-layercatalogus>
 </paper-dialog>
 
 </template>

@@ -8,7 +8,7 @@
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<polymer-element name="g-layercatalogus" attributes="layers">
+<polymer-element name="g-layercatalogus" attributes="activeLayers">
 <template>
 <style>
 .layerItem{
@@ -69,15 +69,19 @@ Polymer({
     var user = 'PICO4749XXXX';
     this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+user+'/config/'+doc;
     this.layers = this.layers || [];
-    
+    this.activeLayers = this.activeLayers || [];
   },
   toggle: function(e) {
-       e.target.icon=e.target.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
+       e.target.parentElement.icon=e.target.parentElement.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
        e.target.parentElement.nextElementSibling.toggle();
   },
   toggleLayer: function(e,b,c) {
       var layer = c.templateInstance.model.l; 
       layer.options.visibility = layer.options.visibility?false:true;
+      if(layer.options.visibility) this.activeLayers.push(layer);
+      else {
+        this.activeLayers.splice(this.activeLayers.indexOf(layer),1)
+      }
   },
   handleResponse: function(d){
     
@@ -87,7 +91,7 @@ Polymer({
             config.source.url,
             {
                 layers: config.source.featureName,
-                format: config.source.contenttype?config.source.contenttype:'format/png',
+                format: config.source.contenttype?config.source.contenttype:'image/png',
                 transparent: config.options.transparent,
                 opacity: config.options.opacity,
                 visibility: config.options.visible,
@@ -98,8 +102,9 @@ Polymer({
         return wms
     }
     this.layers = config.map(makeWms);
+    //TODO put visible layers in activeLayers
     this.catalogus = this.layers.reduce(
-        function(a,l){
+        function(a,l){            
             var group = a.filter(function(d){return d.group == l.options.config.groupName});
             if(group.length == 0) {
                 if(l.subgroupName) {
