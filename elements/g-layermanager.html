@@ -9,9 +9,11 @@
 <style>
 core-collapse {
     background: rgba(225,225,230,0.4);
--webkit-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
--moz-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+    -webkit-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+    -moz-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+    box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
+    margin-left: 1px;
+    margin-right: 1px;
 }
 .legendImg {    
     padding: 5px 5px 5px 15px;
@@ -32,9 +34,22 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 }
 .layer {
     border-top: solid 1px rgb(200,200,200);
+    border-bottom: solid 1px white;
+    background: white;
+}
+core-item {
+    cursor: pointer;
+}
+core-collapse {
+    cursor: move;
+}
+.container {
+    -webkit-box-shadow:  0px 2px 5px 0px rgba(161,161,161,0.62);
+    -moz-box-shadow:  0px 2px 5px 0px rgba(161,161,161,0.62);
+    box-shadow:  0px 2px 5px 0px rgba(161,161,161,0.62);
 }
 </style>
- 
+ <div class="container">
 <template id="layerList" repeat="{{l in layersReversed}}">
    <template if="{{l.options.visibility}}">
    <div class="layer" draggable="true"
@@ -43,28 +58,28 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
             on-dragenter="{{dragenter}}"
             on-dragleave="{{dragleave}}"
             on-drop='{{dragStop}}' >
-     <core-item  icon="arrow-drop-down" label="{{l.options.config.title}}" on-click="{{toggle}}">
-         <paper-ripple fit></paper-ripple>
-         </core-item>
-             <core-collapse>
-    <div class="layerdetails">
-        <paper-slider min="0" max="1" step="0.01" value="{{l.options.opacity}}" on-change="{{setOpacity}}"></paper-slider><span>{{l.options.opacity*100}}%</span>
-        <template if="{{l.options.config.legendUrl}}">
-        <div class="legendImg">
-            <img src="{{l.options.config.legendUrl}}"/>
+        <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
+            <paper-ripple fit></paper-ripple>
+        </core-item>
+        <core-collapse>
+            <div class="layerdetails">
+                <paper-slider min="0" max="1" step="0.01" value="{{l.options.opacity}}" on-change="{{setOpacity}}"></paper-slider><span>{{l.options.opacity*100 | roundZero}}%</span>
+                <template if="{{l.options.config.legendUrl}}">
+                <div class="legendImg" draggable="false">
+                    <img  draggable="false" src="{{l.options.config.legendUrl}}"/>
+                    </div>
+                </template>
+                <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><span class="infoLayer">info</span>
             </div>
-        </template>
-        <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><span class="infoLayer">info</span>
-    </div>
-       
-
         </core-collapse>
- </div>
+    </div>
    </template>
 </template>
+
 </template>
+</div>
 <script>
- Array.prototype.move = function (old_index, new_index) {
+Array.prototype.move = function (old_index, new_index) {
     while (old_index < 0) {
         old_index += this.length;
     }
@@ -80,88 +95,97 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
     this.splice(new_index, 0, this.splice(old_index, 1)[0]);   
 };
 Polymer({
-draglayer: null,
-  layersChanged: function(e) {
-    if(e.length<1) return false;
-    if(e[0].addedCount>0) {
-        this.map.addLayer(this.layers[e[0].index])
-    }
-    else {
-        this.map.removeLayer(e[0].removed[0])
-    }
-    var l = this.layers.slice();
-    l.reverse();
-    this.layersReversed = l;
-    this.orderLayers();
-  },
-  setOpacity: function(e,b,c){
-    var layer = c.templateInstance.model.l;
-    layer.setOpacity(layer.options.opacity);
-  },
-  ready: function() {
-    this.layers = this.layers || [];
-    this.map = this.map || {};
-    
+    roundZero: function(value) {
+        return Math.round(value);
+    },
+    draglayer: null,
+    layersChanged: function(e) {
+        if(e.length<1) return false;
+        if(e[0].addedCount>0) {
+            this.map.addLayer(this.layers[e[0].index])
+        }
+        else {
+            this.map.removeLayer(e[0].removed[0])
+        }
+        var l = this.layers.slice();
+        l.reverse();
+        this.layersReversed = l;
+        this.orderLayers();
+    },
+    orderLayers: function() {
+        var map = this.map;
+        for(var i=0;i<this.layers.length;i++){
+            if(this.layers[i]._map== null) {
+                map.addLayer(this.layers[i])
+            }
+            this.layers[i].setZIndex(i);
+        }
+    },
+    setOpacity: function(e,b,c){
+        var layer = c.templateInstance.model.l;
+        layer.setOpacity(layer.options.opacity);
+    },
+    ready: function() {
+        this.layers = this.layers || [];
+        this.map = this.map || {};    
     },
     toggle: function(e) {
        e.target.parentElement.icon=e.target.parentElement.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
        e.target.parentElement.nextElementSibling.toggle();
-  },
+    },
     toggleLayer: function(e,b,c) {
-      var layer = c.templateInstance.model.l; 
-      layer.options.visibility = layer.options.visibility?false:true;
-      if(!layer.options.visibility){
-        this.layers.splice(this.layers.indexOf(layer),1)
-      }
-  },
-  orderLayers: function() {
-    var map = this.map;
-    for(var i=0;i<this.layers.length;i++){
-        if(this.layers[i]._map== null) {
-            map.addLayer(this.layers[i])
+        var layer = c.templateInstance.model.l; 
+        layer.options.visibility = layer.options.visibility?false:true;
+        if(!layer.options.visibility){
+            this.layers.splice(this.layers.indexOf(layer),1)
         }
-        this.layers[i].setZIndex(i);
-    }
-  },
-   dragStart: function(a,b,c){
-          this.draglayer = c.templateInstance.model.l;
-      },
-      dragenter: function(a,b,c){
-          
-          
-      },
-      dragleave: function(a,b,c){
-          if (c.className == 'layer'){
-              c.style.borderTopColor = '#ddd';
-              c.style.borderTopWidth = '1px';
-          }
-      },
-      allowDrop: function(a,b,c){
-          a.preventDefault();
-          a.stopPropagation();
-          if (c.className == 'layer'){
-              c.style.borderTopWidth = '4px';
-              c.style.borderTopColor = 'red';
-          }
-      },
-      dragStop: function(a,b,c){
-          c.style.borderTopWidth = '1px';
-              c.style.borderTopColor = '#ddd';
-          //Make sure the draglayer is moved to a position before the droponlayer in the layer array  
-          if(this.draglayer._map == null) {
-            console.log('missing dragmap: '+this.draglayer.options.config.title);
-            this.map.addLayer(this.draglayer);
-          }
-          var droponlayer = c.templateInstance.model.l;
-          if(droponlayer._map == null) {
-            this.map.addLayer(droponlayer);
-            console.log('missing dropmap: '+droponlayer.options.config.title);
+    },    
+    dragStart: function(a,b,c){
+        this.draglayer = c.templateInstance.model.l;
+    },
+    dragleave: function(a,b,c){
+        if (c.className == 'layer'){
+            c.style.borderTopColor = 'rgb(200,200,200)';
+            c.style.borderTopWidth = '1px';
+            c.style.borderBottomColor = 'white'
+            c.style.borderBottomWidth = '1px';
+            c.style.opacity = 1;
+        }
+    },
+    allowDrop: function(a,b,c){
+        a.preventDefault();
+        a.stopPropagation();
+        if (c.className == 'layer'){
+            var dragstop = c.templateInstance.model.l;
+            c.style.opacity = 0.8;
+            if(this.layers.indexOf(dragstop)<this.layers.indexOf(this.draglayer)) {
+                c.style.borderBottomWidth = '4px';
+                c.style.borderBottomColor = '#fcbe00';
             }
-          var toIndex =  this.layers.indexOf(droponlayer);
-          var fromIndex = this.layers.indexOf(this.draglayer);
-          this.layers.move(fromIndex, toIndex);
-          
-      }
-  });
+            else if(this.layers.indexOf(dragstop)==this.layers.indexOf(this.draglayer)) {
+                c.style.borderTopWidth = '2px';
+                c.style.borderTopColor = '#5264ae';
+                c.style.borderBottomWidth = '2px';
+                c.style.borderBottomColor = '#5264ae';
+            }
+            else {
+                c.style.borderTopWidth = '4px';
+                c.style.borderTopColor = '#fcbe00';
+            }
+        }
+    },
+    dragStop: function(a,b,c){
+        c.style.borderTopColor = 'rgb(200,200,200)';
+        c.style.borderTopWidth = '1px';
+        c.style.borderBottomColor = 'white'
+        c.style.borderBottomWidth = '1px';
+        c.style.opacity = 1;
+        //Make sure the draglayer is moved to a position before the droponlayer in the layer array  
+        var droponlayer = c.templateInstance.model.l;
+        var toIndex =  this.layers.indexOf(droponlayer);
+        var fromIndex = this.layers.indexOf(this.draglayer);
+        this.layers.move(fromIndex, toIndex);
+    }
+});
 </script>
 </polymer-element>
