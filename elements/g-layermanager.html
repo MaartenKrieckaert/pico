@@ -53,10 +53,12 @@ core-collapse {
 <template id="layerList" repeat="{{l in layersReversed}}">
    <template if="{{l.options.visibility}}">
    <div class="layer" draggable="true"
+            
             on-dragstart='{{dragStart}}'  
             on-dragover="{{allowDrop}}"
             on-dragenter="{{dragenter}}"
             on-dragleave="{{dragleave}}"
+            on-dragend="{{dragstop}}"
             on-drop='{{dragStop}}' >
         <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
             <paper-ripple fit></paper-ripple>
@@ -142,6 +144,7 @@ Polymer({
     },    
     dragStart: function(a,b,c){
         this.draglayer = c.templateInstance.model.l;
+        c.firstChild.nextElementSibling.firstElementChild.style.display='none'
     },
     dragleave: function(a,b,c){
         if (c.className == 'layer'){
@@ -151,6 +154,9 @@ Polymer({
             c.style.borderBottomWidth = '1px';
             c.style.opacity = 1;
         }
+    },
+    dragstop: function(a,b,c) {
+        c.firstElementChild.firstElementChild.style.display = 'block'
     },
     allowDrop: function(a,b,c){
         a.preventDefault();
@@ -175,6 +181,7 @@ Polymer({
         }
     },
     dragStop: function(a,b,c){
+    c.firstChild.nextElementSibling.firstElementChild.style.display='block'
         c.style.borderTopColor = 'rgb(200,200,200)';
         c.style.borderTopWidth = '1px';
         c.style.borderBottomColor = 'white'
