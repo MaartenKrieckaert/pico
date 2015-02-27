@@ -58,7 +58,7 @@ core-collapse {
             on-dragover="{{allowDrop}}"
             on-dragenter="{{dragenter}}"
             on-dragleave="{{dragleave}}"
-            on-dragend="{{dragstop}}"
+            on-dragend="{{dragend}}"
             on-drop='{{dragStop}}' >
         <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
             <paper-ripple fit></paper-ripple>
@@ -102,7 +102,7 @@ Polymer({
     },
     draglayer: null,
     layersChanged: function(e) {
-        if(e.length<1) return false;
+        if(!e ||e.length<1) return false;
         if(e[0].addedCount>0) {
             this.map.addLayer(this.layers[e[0].index])
         }
@@ -155,7 +155,7 @@ Polymer({
             c.style.opacity = 1;
         }
     },
-    dragstop: function(a,b,c) {
+    dragend: function(a,b,c) {
         c.firstElementChild.firstElementChild.style.display = 'block'
     },
     allowDrop: function(a,b,c){
