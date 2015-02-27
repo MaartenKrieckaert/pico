@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/core-item/core-item.html">
+
 <link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
@@ -51,35 +52,34 @@ core-collapse {
 </style>
  <div class="container">
 <template id="layerList" repeat="{{l in layersReversed}}">
-   <template if="{{l.options.visibility}}">
-   <div class="layer" draggable="true"
-            
+    <div class="layer" draggable="true"
+            if="{{l.options.visibility}}"
             on-dragstart='{{dragStart}}'  
             on-dragover="{{allowDrop}}"
             on-dragenter="{{dragenter}}"
             on-dragleave="{{dragleave}}"
             on-dragend="{{dragend}}"
             on-drop='{{dragStop}}' >
+   
         <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
             <paper-ripple fit></paper-ripple>
         </core-item>
         <core-collapse>
             <div class="layerdetails">
                 <paper-slider min="0" max="1" step="0.01" value="{{l.options.opacity}}" on-change="{{setOpacity}}"></paper-slider><span>{{l.options.opacity*100 | roundZero}}%</span>
-                <template if="{{l.options.config.legendUrl}}">
-                <div class="legendImg" draggable="false">
+             
+                <div if="{{l.options.config.legendUrl}}" class="legendImg" draggable="false">
                     <img  draggable="false" src="{{l.options.config.legendUrl}}"/>
-                    </div>
-                </template>
-                <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><span class="infoLayer">info</span>
+                </div>
+            
+                <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><span class="infoLayer">info</span></div>
             </div>
         </core-collapse>
     </div>
-   </template>
-</template>
-
 </template>
 </div>
+</template>
+
 <script>
 Array.prototype.move = function (old_index, new_index) {
     while (old_index < 0) {
