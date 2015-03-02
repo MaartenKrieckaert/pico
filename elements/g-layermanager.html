@@ -143,8 +143,11 @@ Polymer({
         }
     },    
     dragStart: function(a,b,c){
+        a.dataTransfer.effectAllowed = 'move';
+        a.dataTransfer.setData('text/html', c.innerHTML);    
         this.draglayer = c.templateInstance.model.l;
-        c.firstChild.nextElementSibling.firstElementChild.style.display='none'
+        console.log(this.draglayer);
+       // c.firstChild.nextElementSibling.firstElementChild.style.display='none'
     },
     dragleave: function(a,b,c){
         if (c.className == 'layer'){
@@ -156,7 +159,7 @@ Polymer({
         }
     },
     dragend: function(a,b,c) {
-        c.firstElementChild.firstElementChild.style.display = 'block'
+     //   c.firstElementChild.firstElementChild.style.display = 'block'
     },
     allowDrop: function(a,b,c){
         a.preventDefault();
