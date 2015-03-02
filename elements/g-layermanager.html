@@ -32,6 +32,10 @@ core-collapse {
 .infoLayer {
     flex: auto;
     text-align: right;
+    cursor: pointer;
+}
+.infoLayer:hover,.removeLayer:hover {
+    font-weight: bold;
 }
 .layer {
     border-top: solid 1px rgb(200,200,200);
@@ -48,6 +52,21 @@ core-collapse {
     -webkit-box-shadow:  0px 2px 5px 0px rgba(161,161,161,0.62);
     -moz-box-shadow:  0px 2px 5px 0px rgba(161,161,161,0.62);
     box-shadow:  0px 2px 5px 0px rgba(161,161,161,0.62);
+}
+.picoinfo {
+    background: white;
+    padding: 10px;
+}
+.picoinfotext {
+ 
+}
+.picoinfourl:hover {
+    font-weight: bold;
+}
+.picoinfourl {
+text-align: right;
+
+margin-top: 10px;
 }
 </style>
  <div class="container">
@@ -72,7 +91,12 @@ core-collapse {
                     <img  draggable="false" src="{{l.options.config.legendUrl}}"/>
                 </div>
             
-                <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><span class="infoLayer">info</span></div>
+                <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><template if="{{l.options.config.picoInfo!==undefined}}"><span on-click="{{toggleInfo}}"  class="infoLayer">info</span></template></div>
+               
+                 <core-collapse class="picoinfo">
+                    <div class="picoinfotext">{{l.options.config.picoInfo.text}}</div>
+                    <div class="picoinfourl"> <a href="{{l.options.config.picoInfo.url}}" target="_blank">more info</a></div>
+                  </core-collapse>
             </div>
         </core-collapse>
     </div>
@@ -135,6 +159,9 @@ Polymer({
        e.target.parentElement.icon=e.target.parentElement.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
        e.target.parentElement.nextElementSibling.toggle();
     },
+    toggleInfo: function(e) {
+        e.target.parentElement.nextElementSibling.toggle();
+    },
     toggleLayer: function(e,b,c) {
         var layer = c.templateInstance.model.l; 
         layer.options.visibility = layer.options.visibility?false:true;
@@ -147,7 +174,7 @@ Polymer({
         a.dataTransfer.setData('text/html', c.innerHTML);    
         this.draglayer = c.templateInstance.model.l;
         console.log(this.draglayer);
-       // c.firstChild.nextElementSibling.firstElementChild.style.display='none'
+        c.firstChild.nextElementSibling.firstElementChild.style.display='none'
     },
     dragleave: function(a,b,c){
         if (c.className == 'layer'){
@@ -159,7 +186,7 @@ Polymer({
         }
     },
     dragend: function(a,b,c) {
-     //   c.firstElementChild.firstElementChild.style.display = 'block'
+        c.firstElementChild.firstElementChild.style.display = 'block'
     },
     allowDrop: function(a,b,c){
         a.preventDefault();
@@ -169,7 +196,7 @@ Polymer({
             c.style.opacity = 0.8;
             if(this.layers.indexOf(dragstop)<this.layers.indexOf(this.draglayer)) {
                 c.style.borderBottomWidth = '4px';
-                c.style.borderBottomColor = '#fcbe00';
+                c.style.borderBottomColor = 'red';
             }
             else if(this.layers.indexOf(dragstop)==this.layers.indexOf(this.draglayer)) {
                 c.style.borderTopWidth = '2px';
@@ -179,7 +206,7 @@ Polymer({
             }
             else {
                 c.style.borderTopWidth = '4px';
-                c.style.borderTopColor = '#fcbe00';
+                c.style.borderTopColor = 'red';
             }
         }
     },
