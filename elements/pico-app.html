@@ -5,6 +5,7 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="./g-layermanager.html"> 
+<link rel="import" href="./g-filtermanager.html"> 
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="./g-cas.html"> 
 <link rel="import" href="./g-layercatalogus.html"> -->
@@ -109,7 +110,8 @@ g-layermanager {
     <core-toolbar id="navheader"  class="medium-tall">
       <span class=" indent"><a href="./"><img src="../style/pico.png"></a></span>
     </core-toolbar>
-    <g-layermanager fit  layers="{{layers}}" map="{{map}}"></g-layermanager>
+    <g-filtermanager   map="{{map}}"></g-filtermanager>
+    <g-layermanager   layers="{{layers}}" map="{{map}}"></g-layermanager>
   </core-header-panel>
 </core-drawer-panel>
 

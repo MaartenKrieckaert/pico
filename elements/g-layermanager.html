@@ -85,7 +85,7 @@ margin-top: 10px;
         </core-item>
         <core-collapse>
             <div class="layerdetails">
-                <paper-slider min="0" max="1" step="0.01" value="{{l.options.opacity}}" on-change="{{setOpacity}}"></paper-slider><span>{{l.options.opacity*100 | roundZero}}%</span>
+                <paper-slider min="0" max="1" step="0.01" value='1' immediateValue="{{l.options.opacity}}" on-immediate-value-change="{{setOpacity}}"></paper-slider><span>{{l.options.opacity*100 | roundZero}}%</span>
              
                 <div if="{{l.options.config.legendUrl}}" class="legendImg" draggable="false">
                     <img  draggable="false" src="{{l.options.config.legendUrl}}"/>
@@ -95,7 +95,7 @@ margin-top: 10px;
                
                  <core-collapse class="picoinfo">
                     <div class="picoinfotext">{{l.options.config.picoInfo.text}}</div>
-                    <div class="picoinfourl"> <a href="{{l.options.config.picoInfo.url}}" target="_blank">more info</a></div>
+                    <template if="{{l.options.config.picoInfo.url}}"><div class="picoinfourl"> <a href="{{l.options.config.picoInfo.url}}" target="_blank">meer info</a></div></template>
                   </core-collapse>
             </div>
         </core-collapse>
