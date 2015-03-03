@@ -6,7 +6,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="./g-layermanager.html"> 
 <link rel="import" href="./g-filtermanager.html"> 
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="./g-cas.html"> 
 <link rel="import" href="./g-layercatalogus.html"> -->
 
@@ -50,41 +50,37 @@ core-drawer-panel:not([narrow]) #navicon {
     right: 10px;
     position: absolute;
 }
-.bb-button {
-    
-}
+
 core-toolbar, paper-button[raised] {
-background: #3F51B5;
-color: white;
+    background: #3F51B5;
+    color: white;
 }
 
 paper-button {
-background: #E8EAF6
+    background: #E8EAF6;
 }
 
 #mode-buttons {
-width: 52px;
-right: 0;
-float: right;
-top: 135px;
-position: absolute;
+    width: 52px;
+    right: 0;
+    float: right;
+    top: 135px;
+    position: absolute;
 }
 #mode-buttons paper-icon-button {
     border: solid 2px black;
     border-radius: 3px;
 }
 #idicon {
-float: right;
-color: white;
-top: 6px;
-right: 12px;
+    float: right;
+    color: white;
+    top: 6px;
+    right: 12px;
 }
 
 #login {
     float: right;
-
-top: 6px;
-
+    top: 6px;
 }
 g-layermanager {
     background: #eeeeec;;
@@ -115,11 +111,13 @@ g-layermanager {
   </core-header-panel>
 </core-drawer-panel>
 
-<paper-dialog id="login" transition="core-transition-right" heading="Account gegevens">
+<paper-action-dialog id="login" transition="core-transition-right" heading="Account gegevens">
   <g-cas></g-cas>
+      <paper-button affirmative  autofocus>Sluit</paper-button>
 </paper-dialog>
-<paper-dialog id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">
-  <g-layercatalogus id="layerConfig" activeLayers="{{layers}}"></g-layercatalogus>
+<paper-action-dialog  class="scrolling"  id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">
+  <g-layercatalogus  id="layerConfig" activeLayers="{{layers}}"></g-layercatalogus>
+    <paper-button affirmative  autofocus>Sluit</paper-button>
 </paper-dialog>
 
 </template>
