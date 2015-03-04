@@ -9,7 +9,7 @@
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<polymer-element name="g-layercatalogus" attributes="activeLayers">
+<polymer-element name="g-layercatalogus" attributes="activeLayers account">
 <template>
 <style>
 .layerItem{
@@ -46,6 +46,10 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
     on-core-response="{{handleResponse}}"
     withCredentials=true
 ></core-ajax>
+<template if="{{account.ID==undefined}}">
+<p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
+</template>
+<template  if="{{account.ID!=undefined}}">
 <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
 <template id="layerList" repeat="{{layer in catalogus}}">
 <div class="group"><core-item class="groupTitle" icon="arrow-drop-down" label="{{layer.group}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
@@ -66,6 +70,7 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 </div>
 </template>
 </template>
+</template>
 <script>
 
 Polymer({
@@ -81,14 +86,20 @@ Polymer({
     this.createCatalogus(resultaat,open);
                      
   },
+  accountChanged: function(){
+    var doc = '5a10e49a-f5a9-404d-82a5-829388cc8fb3';
+    
+    if(this.account.OrganisationCode) {
+        this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+doc;
+    }
+  },
   ready: function() {
-   var doc = '5a10e49a-f5a9-404d-82a5-829388cc8fb3';
-    var user = 'PICO4749XXXX';
-    this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+user+'/config/'+doc;
+    
    // alert(this.$.getConfig.url);
     this.layers = this.layers || [];
     this.catalogus = this.catalogus || [];
     this.activeLayers = this.activeLayers || [];
+    this.account = this.account || {};
     
   },
   toggle: function(e) {
