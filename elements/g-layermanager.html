@@ -127,11 +127,19 @@ Polymer({
     },
     draglayer: null,
     layersChanged: function(e) {
-        if(!e ||e.length<1) return false;
-        if(e[0].addedCount>0) {
+        if(!e || e.length == 0) return false;
+        else if(this.layers.length ==0) {
+            //remove all layers, except the hardcoded ones
+            var map = this.map;
+            map.eachLayer(function(l){
+                if(l.options.config) map.removeLayer(l)
+            })
+        }
+        else if(e[0].addedCount>0) {
+       
             this.map.addLayer(this.layers[e[0].index])
         }
-        else {
+        else {       
             this.map.removeLayer(e[0].removed[0])
         }
         var l = this.layers.slice();

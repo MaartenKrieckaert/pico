@@ -7,6 +7,8 @@
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/core-collapse/core-collapse.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-dropdown/paper-dropdown.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <polymer-element name="g-layercatalogus" attributes="activeLayers account">
@@ -38,6 +40,9 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 #zoekVeld {
     width: 300px;
 }
+paper-dropdown-menu,paper-dropdown {
+    width: 220px;
+}
 </style>
 <core-ajax id="getConfig"
     auto
@@ -50,9 +55,18 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
 <template  if="{{account.ID!=undefined}}">
+ Configuratie:  <paper-dropdown-menu label="{{activeConfig}}">
+        <paper-dropdown class="dropdown">
+          <core-menu class="menu">
+            <template repeat="{{c in configs}}">
+              <paper-item on-click="{{changeConfig}}">{{c.title}}</paper-item>
+            </template>
+          </core-menu>
+        </paper-dropdown>
+      </paper-dropdown-menu><br/>
 <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
 <template id="layerList" repeat="{{layer in catalogus}}">
-<div class="group"><core-item class="groupTitle" icon="arrow-drop-down" label="{{layer.group}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
+<div class="group"><core-item class="groupTitle" icon="arrow-drop-down" label="{{layer.group==null?'Generiek':layer.group}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
     <core-collapse opened="{{layer.opened}}">
     <template repeat="{{sub in layer.subgroup}}">    
     <div class="subGroup"><core-item class="subGroupTitle" icon="arrow-drop-down" label="{{sub.subname}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
@@ -90,7 +104,8 @@ Polymer({
     var doc = '5a10e49a-f5a9-404d-82a5-829388cc8fb3';
     
     if(this.account.OrganisationCode) {
-        this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+doc;
+       // this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+doc;
+        this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/'+this.account.OrganisationCode+'/config/';
     }
   },
   ready: function() {
@@ -100,7 +115,8 @@ Polymer({
     this.catalogus = this.catalogus || [];
     this.activeLayers = this.activeLayers || [];
     this.account = this.account || {};
-    
+    this.configs = [];
+    this.activeConfig = '';
   },
   toggle: function(e) {
        e.target.parentElement.icon=e.target.parentElement.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
@@ -120,6 +136,11 @@ Polymer({
       else {
         this.activeLayers.splice(this.activeLayers.indexOf(layer),1)
       }
+  },
+  changeConfig: function(a,b,c) {
+    var config = c.templateInstance.model.c; 
+    this.activeConfig = config.title;
+     this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+config.name;
   },
   createCatalogus: function(layerlist,open) {
      this.catalogus = layerlist.reduce(
@@ -151,26 +172,36 @@ Polymer({
         }, []);
   },
   handleResponse: function(d){   
-    var config = JSON.parse(d.detail.response).map.layers; 
-    var makeWms = function(config) {
-        var wms = L.tileLayer.wms(
-            config.source.url,
-            {
-                layers: config.source.featureName,
-                format: config.source.contenttype?config.source.contenttype:'image/png',
-                transparent: config.options.transparent,
-                opacity: config.options.opacity,
-                visibility: config.options.visible,
-                config: config
-            
-            }
-        );        
-        return wms
+    var response = JSON.parse(d.detail.response);
+    if(response.constructor === Array) {
+        //just a list of configs
+        this.configs = response;
+        this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+this.configs[0].name;
+        this.activeConfig = this.configs[0].title;
     }
-    this.layers = config.map(makeWms);
-    this.createCatalogus(this.layers);
-    //TODO put visible layers in activeLayers
-   
+    else {
+        //actual config
+        var config = response.map.layers; 
+        var makeWms = function(config) {
+            var wms = L.tileLayer.wms(
+                config.source.url,
+                {
+                    layers: config.source.featureName,
+                    format: config.source.contenttype?config.source.contenttype:'image/png',
+                    transparent: config.options.transparent,
+                    opacity: config.options.opacity,
+                    visibility: config.options.visible,
+                    config: config
+                
+                }
+            );        
+            return wms
+        }
+        this.layers = config.map(makeWms);
+        this.createCatalogus(this.layers);
+        this.activeLayers = [];
+        //TODO put visible layers in activeLayers
+    }
   }
 });
 </script>
