@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/core-ajax/core-ajax.html">
 <link rel="import" href="../bower_components/core-item/core-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/core-label/core-label.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/core-collapse/core-collapse.html">
@@ -34,6 +35,9 @@ core-collapse {
 -moz-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 }
+#zoekVeld {
+    width: 300px;
+}
 </style>
 <core-ajax id="getConfig"
     auto
@@ -42,12 +46,13 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
     on-core-response="{{handleResponse}}"
     withCredentials=true
 ></core-ajax>
+<paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
 <template id="layerList" repeat="{{layer in catalogus}}">
 <div class="group"><core-item class="groupTitle" icon="arrow-drop-down" label="{{layer.group}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
-    <core-collapse>
+    <core-collapse opened="{{layer.opened}}">
     <template repeat="{{sub in layer.subgroup}}">    
     <div class="subGroup"><core-item class="subGroupTitle" icon="arrow-drop-down" label="{{sub.subname}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
-        <core-collapse on-core-collapse-open="{{resizeGroup}}">
+        <core-collapse on-core-collapse-open="{{resizeGroup}}"  opened="{{sub.opened}}">
         <template repeat="{{l in sub.layers}}">
        <core-item class="layer" vis="{{l.options.visibility}}"  icon="{{l.options.visibility?'check-box':'check-box-outline-blank'}}" label="{{l.options.config.title}}" on-click="{{toggleLayer}}"><paper-ripple fit></paper-ripple></core-item>
         </template>
@@ -64,12 +69,27 @@ box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
 <script>
 
 Polymer({
+  search: null,
+  catalogus: null,
+  searchChanged: function() {
+
+    var zoek =this.search;
+    var resultaat = this.layers.filter(function(l){
+        return l.options.config.title.toLowerCase().indexOf(zoek.toLowerCase())>=0
+    })
+    var open=zoek==""?false:true;
+    this.createCatalogus(resultaat,open);
+                     
+  },
   ready: function() {
    var doc = '5a10e49a-f5a9-404d-82a5-829388cc8fb3';
     var user = 'PICO4749XXXX';
     this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+user+'/config/'+doc;
+   // alert(this.$.getConfig.url);
     this.layers = this.layers || [];
+    this.catalogus = this.catalogus || [];
     this.activeLayers = this.activeLayers || [];
+    
   },
   toggle: function(e) {
        e.target.parentElement.icon=e.target.parentElement.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
@@ -90,8 +110,36 @@ Polymer({
         this.activeLayers.splice(this.activeLayers.indexOf(layer),1)
       }
   },
-  handleResponse: function(d){
-    
+  createCatalogus: function(layerlist,open) {
+     this.catalogus = layerlist.reduce(
+        function(a,l){            
+            var group = a.filter(function(d){return d.group == l.options.config.groupName});
+            if(group.length == 0) {
+                if(l.options.config.subgroupName) {
+                    a.push({group:l.options.config.groupName,opened:open,layers:[],subgroup:[{subname:l.options.config.subgroupName,opened:open,layers:[l]}]});
+                }
+                else {
+                    a.push({group:l.options.config.groupName,opened:open,subgroup:[],layers:[l]})
+                }
+            }
+            else {
+                if(l.options.config.subgroupName) {
+                    var sub = group[0].subgroup.filter(function(d){return d.subname==l.options.config.subgroupName});
+                    if(sub.length == 0) {
+                        group[0].subgroup.push({subname:l.options.config.subgroupName,opened:open,layers:[l]})
+                    }
+                    else {
+                        sub[0].layers.push(l);
+                    }
+                }
+                else {
+                    group[0].layers.push(l)
+                }
+            }
+            return a;
+        }, []);
+  },
+  handleResponse: function(d){   
     var config = JSON.parse(d.detail.response).map.layers; 
     var makeWms = function(config) {
         var wms = L.tileLayer.wms(
@@ -109,34 +157,9 @@ Polymer({
         return wms
     }
     this.layers = config.map(makeWms);
+    this.createCatalogus(this.layers);
     //TODO put visible layers in activeLayers
-    this.catalogus = this.layers.reduce(
-        function(a,l){            
-            var group = a.filter(function(d){return d.group == l.options.config.groupName});
-            if(group.length == 0) {
-                if(l.subgroupName) {
-                    a.push({group:l.options.config.groupName,layers:[],subgroup:[{subname:l.options.config.subgroupName,layers:[l]}]});
-                }
-                else {
-                    a.push({group:l.options.config.groupName,subgroup:[],layers:[l]})
-                }
-            }
-            else {
-                if(l.options.config.subgroupName) {
-                    var sub = group[0].subgroup.filter(function(d){return d.subname==l.options.config.subgroupName});
-                    if(sub.length == 0) {
-                        group[0].subgroup.push({subname:l.options.config.subgroupName,layers:[l]})
-                    }
-                    else {
-                        sub[0].layers.push(l);
-                    }
-                }
-                else {
-                    group[0].layers.push(l)
-                }
-            }
-            return a;
-        }, []);
+   
   }
 });
 </script>

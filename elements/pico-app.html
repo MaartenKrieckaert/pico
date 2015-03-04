@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/core-drawer-panel/core-drawer-panel.html">
 <link rel="import" href="../bower_components/core-header-panel/core-header-panel.html">
 <link rel="import" href="../bower_components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../bower_components/paper-shadow/paper-shadow.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="./g-layermanager.html"> 
@@ -22,14 +23,17 @@
 
 #container {
     top: 64px;
-    left: 0px;
+    left: 4px;
     right: 64px;
     bottom: 5px;
     background-color: #fff;
-    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-    border-radius: 2px;
+    box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.26);
+    border-radius: 5px;
+    border: solid 1px rgba(0,0,0,0);
     overflow: hidden;
     position: absolute;
+         box-sizing: border-box;
+      
 }
 body {
     background-color: white;
@@ -89,20 +93,22 @@ g-layermanager {
 </style>
 
 <core-drawer-panel id="drawerPanel">
-  <core-header-panel  main  mode="cover" shadow>
+  <core-header-panel  main  mode="cover" shadow  style="z-index:0">
     <core-toolbar class="medium-tall">
     </core-toolbar>
-    <div id="container">
+     <div id="container">
+       
        <div id="map"><div id="button-bar"><paper-button id="lufo">lufo</paper-button><paper-button raised id="topo">topo</paper-button></div></div>
+
     </div>
     <div id="mode-buttons">
         <paper-icon-button raised id="addlayer" icon="add"  on-click="{{toggleAddLayer}}"></paper-icon-button>
         <paper-icon-button icon="assessment"></paper-icon-button>
     </div>
-    <paper-icon-button icon="menu" id="navicon"></paper-icon-button>
+    <paper-icon-button icon="menu" id="navicon" on-click="{{toggleDrawer}}"></paper-icon-button>
     <paper-icon-button id="idicon" icon="account-circle" on-click="{{toggleLogin}}"></paper-icon-button>  
   </core-header-panel>
-  <core-header-panel drawer>
+  <core-header-panel drawer style="background:white;z-index:1">
     <core-toolbar id="navheader"  class="medium-tall">
       <span class=" indent"><a href="./"><img src="../style/pico.png"></a></span>
     </core-toolbar>
@@ -123,13 +129,14 @@ g-layermanager {
 </template>
 <script>
  Polymer({
+    toggleDrawer: function(e) {
+        this.$.drawerPanel.togglePanel()
+    },
     ready: function() {
         // Initialize the instance's "list" property to empty array.
         this.layers = this.layers || [];
         //TODO
-        this.$.navicon.addEventListener('click',function(){
-            this.$.drawerPanel.togglePanel();
-        })
+       
     
     var crs = new L.Proj.CRS.TMS(
          'EPSG:28992',

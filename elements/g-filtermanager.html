@@ -56,7 +56,7 @@ paper-interval-slider::shadow .knobInner {
    <div class="layer">
    
         <core-item  icon="arrow-drop-down" title="{{l.options.title}}" label="{{l.options.title}}" on-click="{{toggle}}">
-            <paper-ripple fit></paper-ripple><span flex></span><paper-checkbox  checked="{{l.visible}}" on-click="{{stop}}" on-core-change="{{toggleOpac}}"></paper-checkbox>
+            <paper-ripple fit></paper-ripple><span flex></span><paper-checkbox  checked="{{l.options.visible}}" on-click="{{stop}}" on-core-change="{{toggleOpac}}"></paper-checkbox>
         </core-item>
         <core-collapse>
             <div class="filters">
@@ -92,6 +92,7 @@ Polymer({
         e.target.parentElement.icon=visible?"arrow-drop-up":"arrow-drop-down";
         e.target.parentElement.nextElementSibling.toggle();
         if(visible) {
+             e.target.parentElement.nextElementSibling.style.opacity = 1;
             for(var i =0;i<this.filters.length;i++) {     
      
                 this.map.addLayer(this.filters[i].setZIndex(1000+i));
@@ -110,7 +111,7 @@ Polymer({
     toggleOpac: function(a,b,c){
         if(a.target.disabled) return false;
         var layer = c.templateInstance.model.l;
-        layer.setOpacity(layer.visible?1:0);
+        layer.setOpacity(layer.options.visible?1:0);
     },
     updateFilters: function(layer) {
         var cqlfilter = 'NOT (';
@@ -165,14 +166,16 @@ var wms_wijk = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
     {title:'p_huurcorp',min:0,max:100,a:0,b:100},
     {title:'p_25_44_jr',min:0,max:100,a:0,b:100}
     ],
-    title: 'Wijkniveau'
+    title: 'Wijkniveau',
+    visible: true
 });
  
 var wms_buurt = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
     layers: 'cbs_buurten_2011_dit',
     format: 'image/png',
     transparent: true,
-    title: 'Buurtniveau'
+    title: 'Buurtniveau',
+    visible: true
 });
 
 
@@ -180,7 +183,8 @@ var wms_blok = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
     layers: 'pc6_energieverbruik_alliander',
     format: 'image/png',
     transparent: true,
-    title: 'Blokniveau'
+    title: 'Blokniveau',
+    visible: true
 });
 
 var wms_pand = L.tileLayer.wms("http://model.geodan.nl/geoserver/pico/wms", {
@@ -188,7 +192,8 @@ var wms_pand = L.tileLayer.wms("http://model.geodan.nl/geoserver/pico/wms", {
     format: 'image/png',
     transparent: true,
     minZoom: 9,
-    title: 'Pandniveau'
+    title: 'Pandniveau',
+    visible: true
 });   
         this.filters= [wms_pand,wms_blok, wms_buurt, wms_wijk];
        // this.filters= [wms_wijk];
