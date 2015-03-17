@@ -11,7 +11,7 @@
 <link rel="import" href="../bower_components/paper-dropdown/paper-dropdown.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<polymer-element name="g-layercatalogus" attributes="activeLayers account">
+<polymer-element name="g-layercatalogus" attributes="activeLayers account filters">
 <template>
 <style>
 .layerItem{
@@ -55,7 +55,7 @@ paper-dropdown-menu,paper-dropdown {
 <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
 <template  if="{{account.ID!=undefined}}">
- Configuratie:  <paper-dropdown-menu label="{{activeConfig}}">
+<!-- Configuratie:  <paper-dropdown-menu label="{{activeConfig}}">
         <paper-dropdown class="dropdown">
           <core-menu class="menu">
             <template repeat="{{c in configs}}">
@@ -63,7 +63,7 @@ paper-dropdown-menu,paper-dropdown {
             </template>
           </core-menu>
         </paper-dropdown>
-      </paper-dropdown-menu><br/>
+      </paper-dropdown-menu><br/>-->
 <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
 <template id="layerList" repeat="{{layer in catalogus}}">
 <div class="group"><core-item class="groupTitle" icon="arrow-drop-down" label="{{layer.group==null?'Generiek':layer.group}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple></core-item>
@@ -89,7 +89,6 @@ paper-dropdown-menu,paper-dropdown {
 
 Polymer({
   search: null,
-  catalogus: null,
   searchChanged: function() {
 
     var zoek =this.search;
@@ -97,11 +96,11 @@ Polymer({
         return l.options.config.title.toLowerCase().indexOf(zoek.toLowerCase())>=0
     })
     var open=zoek==""?false:true;
-    this.createCatalogus(resultaat,open);
+    this.updateCatalogus(resultaat,open);
                      
   },
   accountChanged: function(){
-    var doc = '5a10e49a-f5a9-404d-82a5-829388cc8fb3';
+   
     
     if(this.account.OrganisationCode) {
        // this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+doc;
@@ -112,6 +111,7 @@ Polymer({
     
    // alert(this.$.getConfig.url);
     this.layers = this.layers || [];
+    this.filters = this.filters || [];
     this.catalogus = this.catalogus || [];
     this.activeLayers = this.activeLayers || [];
     this.account = this.account || {};
@@ -142,9 +142,12 @@ Polymer({
     this.activeConfig = config.title;
      this.$.getConfig.url = 'https://services.geodan.nl:443/document/api/data/'+this.account.OrganisationCode+'/config/'+config.name;
   },
-  createCatalogus: function(layerlist,open) {
+  updateCatalogus: function(layerlist,open) {
      this.catalogus = layerlist.reduce(
-        function(a,l){            
+        function(a,l){
+            if(l.options.config.filters&&l.options.config.filters.length>0) {
+            return a;
+            }
             var group = a.filter(function(d){return d.group == l.options.config.groupName});
             if(group.length == 0) {
                 if(l.options.config.subgroupName) {
@@ -171,6 +174,17 @@ Polymer({
             return a;
         }, []);
   },
+  createCatalogus: function(layerlist,open) {
+        this.updateCatalogus(layerlist,open);
+        this.filters = layerlist.filter(function(l){
+            return l.options.config.filters;
+        })
+
+        
+         this.activeLayers = layerlist.filter(function(l){
+            return l.options.visibility;
+        })
+  },
   handleResponse: function(d){   
     var response = JSON.parse(d.detail.response);
     if(response.constructor === Array) {
@@ -181,8 +195,27 @@ Polymer({
     }
     else {
         //actual config
+        //this.activeLayers = [];
         var config = response.map.layers; 
+        var calcZoom = function(scale) {
+            var resolutions = [3440.640, 1720.320, 860.160, 430.080, 215.040, 107.520, 53.760, 26.880, 13.440, 6.720, 3.360, 1.680, 0.840, 0.420, 0.21];
+            var res = 0.28*scale/1000; //standard geoserver scale calculation
+            var zoom =0;            
+            for(var i = 0; i<resolutions.length;i++) {
+                if(res<resolutions[i]) zoom++
+            }
+            return zoom;
+        
+        };
+
         var makeWms = function(config) {
+            var minZoom = 0;
+            if(config.options.maxResolution) {
+                minZoom = calcZoom(config.options.maxResolution);
+            }
+            if(config.filters) {
+                config.showup = true;                
+            }
             var wms = L.tileLayer.wms(
                 config.source.url,
                 {
@@ -191,15 +224,16 @@ Polymer({
                     transparent: config.options.transparent,
                     opacity: config.options.opacity,
                     visibility: config.options.visible,
-                    config: config
-                
+                    config: config,
+                    minZoom: minZoom
                 }
             );        
             return wms
         }
         this.layers = config.map(makeWms);
-        this.createCatalogus(this.layers);
-        this.activeLayers = [];
+        this.createCatalogus(this.layers);        
+       
+     
         //TODO put visible layers in activeLayers
     }
   }

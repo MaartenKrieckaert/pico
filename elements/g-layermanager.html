@@ -3,6 +3,7 @@
 
 <link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
 <polymer-element name="g-layermanager" attributes="layers map layersReversed">
@@ -16,7 +17,7 @@ core-collapse {
     margin-left: 1px;
     margin-right: 1px;
 }
-.legendImg {    
+.legendImg, .transparent {    
     padding: 5px 5px 5px 15px;
 }
 .layerRest {
@@ -69,10 +70,25 @@ text-align: right;
 
 margin-top: 10px;
 }
+.zoomin core-item{
+    color: red;
+}
+.legendImg {
+    font-weight: 500;
+}
+
+.zoomin .legendImg {
+    border: red solid 1px;
+}
+</style>
+<style shim-shadowdom>
+  paper-spinner.black::shadow .circle {
+    border-color: #000;
+  }
 </style>
  <div class="container">
 <template id="layerList" repeat="{{l in layersReversed}}">
-    <div class="layer" draggable="true"
+    <div class="layer {{l.options.minZoom > l._map._zoom?'zoomin':'visible'}}" draggable="true"
             if="{{l.options.visibility}}"
             on-dragstart='{{dragStart}}'  
             on-dragover="{{allowDrop}}"
@@ -80,18 +96,23 @@ margin-top: 10px;
             on-dragleave="{{dragleave}}"
             on-dragend="{{dragend}}"
             on-drop='{{dragStop}}' >
+          
    
         <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
-            <paper-ripple fit></paper-ripple>
+            <paper-ripple fit></paper-ripple><span flex></span><paper-spinner class="black"  active={{l.loading}}></paper-spinner>
         </core-item>
         <core-collapse>
             <div class="layerdetails">
-                <paper-slider min="0" max="1" step="0.01" value='1' immediateValue="{{l.options.opacity}}" on-immediate-value-change="{{setOpacity}}"></paper-slider><span>{{l.options.opacity*100 | roundZero}}%</span>
-             
-                <div if="{{l.options.config.legendUrl}}" class="legendImg" draggable="false">
+                <p class="transparent">Opaciteit: <span>{{l.options.opacity*100 | roundZero}}%</span></p>
+                <paper-slider min="0" max="1" step="0.01" value='1' immediateValue="{{l.options.opacity}}" on-immediate-value-change="{{setOpacity}}" title="Schuif om de transparantie van de laag in te stellen"></paper-slider>
+                <template if="{{l.options.minZoom > l._map._zoom}}"><div class="legendImg" draggable="false">
+                U dient {{l.options.minZoom - l._map._zoom}}x verder in te zoomen om deze laag te kunnen bekijken</div></template>
+                <template if="{{l.options.config.legendUrl&&l.options.minZoom <= l._map._zoom}}">
+                <div class="legendImg" draggable="false">
                     <img  draggable="false" src="{{l.options.config.legendUrl}}"/>
                 </div>
-            
+                </template>
+                
                 <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><template if="{{l.options.config.picoInfo!==undefined}}"><span on-click="{{toggleInfo}}"  class="infoLayer">info</span></template></div>
                
                  <core-collapse class="picoinfo">
@@ -128,18 +149,36 @@ Polymer({
     draglayer: null,
     layersChanged: function(e) {
         if(!e || e.length == 0) return false;
-        else if(this.layers.length ==0) {
+        if(this.layers.length ==0) {
             //remove all layers, except the hardcoded ones
             var map = this.map;
             map.eachLayer(function(l){
+                l.off('loading',function(f){
+                    this.loading = true;
+                });
+                l.off('load',function(f){
+                    this.loading = false;
+                });
                 if(l.options.config) map.removeLayer(l)
             })
         }
-        else if(e[0].addedCount>0) {
+        if(e[0].addedCount>0) {
        
             this.map.addLayer(this.layers[e[0].index])
+             this.layers[e[0].index].on('loading',function(f){
+                    this.loading = true;
+                });
+                this.layers[e[0].index].on('load',function(f){
+                    this.loading = false;
+                });
         }
-        else {       
+        else if(e[0].removed !== undefined) {     
+            e[0].removed[0].off('loading',function(f){
+                    this.loading = true;
+                });
+                e[0].removed[0].off('load',function(f){
+                    this.loading = false;
+                });
             this.map.removeLayer(e[0].removed[0])
         }
         var l = this.layers.slice();
@@ -152,6 +191,12 @@ Polymer({
         for(var i=0;i<this.layers.length;i++){
             if(this.layers[i]._map== null) {
                 map.addLayer(this.layers[i])
+                    this.layers[i].on('loading',function(f){
+                    this.loading = true;
+                });
+                this.layers[i].on('load',function(f){
+                    this.loading = false;
+                });
             }
             this.layers[i].setZIndex(i);
         }
