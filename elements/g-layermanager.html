@@ -159,7 +159,7 @@ Polymer({
                 l.off('load',function(f){
                     this.loading = false;
                 });
-                if(l.options.config) map.removeLayer(l)
+                if(l.feature || l.options.config) map.removeLayer(l)
             })
         }
         if(e[0].addedCount>0) {

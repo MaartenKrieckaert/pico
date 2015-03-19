@@ -1,0 +1,80 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+<polymer-element name="g-buurtinfo" attributes="layers map">
+
+<template>
+<core-ajax id="wfsreq"
+on-core-response="{{showFeatures}}"
+ handleAs="json"
+>
+</core-ajax>
+
+</template>
+<script>
+
+Polymer({
+ puntenChanged: function(){
+        if (this.punten.length == 0) return false;
+        var feature = '<gml:MultiPoint srsName="http://www.opengis.net/gml/srs/epsg.xml#4326" xmlns:gml="http://www.opengis.net/gml" >';
+        var punts = this.punten;
+        console.log(punts);
+        for(var i = 0;i<punts.length;i++) {
+            var punt = '<gml:pointMember><gml:Point><gml:coordinates>'+punts[i].lng+','+punts[i].lat+'</gml:coordinates></gml:Point></gml:pointMember>'
+            feature+=punt
+        }
+        feature+='</gml:MultiPoint>';
+        var req = this.$.wfsreq;
+        
+        req.method = 'POST';
+        req.contentType = 'Content-Type:application/xml';
+        req.body = '<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd" srsName="EPSG:4326" ><wfs:Query typeName="feature:cbs_buurten_2011_dit" xmlns:feature="pico" srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"><ogc:And><ogc:Intersects><ogc:PropertyName>wkb_geometry</ogc:PropertyName>'+feature+     '</ogc:Intersects></ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>';
+        req.url='http://steveno.geodan.nl/ows?service=WFS&	outputFormat=application/json&srsName=EPSG:4326';
+        req.go();
+    },
+ mapChanged: function(){
+            var self = this;
+           var addPoint = function(p,add) {       
+if(self.activeLayer){
+                    self.layers.splice(self.layers.indexOf(self.activeLayer),1);
+                    
+                    delete self.activeLayer;
+                    }           
+                if(!add) {
+                    self.punten = [];
+                    
+                }
+                self.punten.push(p);
+                
+           }
+            if(this.map!=null) {          
+                this.map.on('click',function(e){
+                    addPoint(e.latlng,e.originalEvent.ctrlKey);
+                });
+                  
+            }
+          
+        
+    },
+    showFeatures: function(d) {
+        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).bindPopup('Hello world!')
+   
+            this.activeLayer.options = {'title':'geojson',config:{'title':'geojson'}};
+            this.layers.push(this.activeLayer);
+        }
+        else this.activeLayer.addData(d.detail.response);
+        
+
+        
+    },
+  ready: function() {
+        
+        this.layers = this.layers || [];
+        this.punten = this.punten || [];
+        this.map = this.map || {};
+  }
+  });
+</script>
+  
+
+</polymer-element>
