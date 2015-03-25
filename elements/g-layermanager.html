@@ -103,8 +103,10 @@ margin-top: 10px;
         </core-item>
         <core-collapse>
             <div class="layerdetails">
+            <template if="{{!l.options.noopacity}}">
                 <p class="transparent">Opaciteit: <span>{{l.options.opacity*100 | roundZero}}%</span></p>
                 <paper-slider min="0" max="1" step="0.01" value='1' immediateValue="{{l.options.opacity}}" on-immediate-value-change="{{setOpacity}}" title="Schuif om de transparantie van de laag in te stellen"></paper-slider>
+                </template>
                 <template if="{{l.options.minZoom > l._map._zoom}}"><div class="legendImg" draggable="false">
                 U dient {{l.options.minZoom - l._map._zoom}}x verder in te zoomen om deze laag te kunnen bekijken</div></template>
                 <template if="{{l.options.config.legendUrl&&l.options.minZoom <= l._map._zoom}}">

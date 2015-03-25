@@ -1,4 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/chart-elements/chart-doughnut.html">
+<link rel="import" href="../bower_components/chart-elements/chart-bar.html">
 
 <link rel="import" href="../bower_components/core-ajax/core-ajax.html">
 <polymer-element name="g-buurtinfo" attributes="layers map">
@@ -40,7 +42,7 @@ if(self.activeLayer){
                     
                     delete self.activeLayer;
                     }           
-                if(!add) {
+               if(!add) {
                     self.punten = [];
                     
                 }
@@ -56,10 +58,38 @@ if(self.activeLayer){
           
         
     },
+    showPopup: function(response) {
+        var result ='';
+        var p = [];
+        for(var i=0; i<response.features.length;i++){
+            p.push(response.features[i].properties);
+        }   
+        /*for(var i = 0;i<properties.length;i++){
+            result += properties[i].buurtnaam + '<br/>'
+        }*/
+        
+        result += 'Dit is '+p[0].buurtnaam+' in '+p[0].wijknaam+' gelegen in de gemeente <b>'+p[0].gemnaam+'</b>.<br/>';
+        result += 'Hier wonen '+p[0].aant_inw*1000+' mensen waarvan '+Math.round(p[0].aant_man/p[0].aant_inw*100)+'% man en '+Math.round(p[0].aant_vrouw/p[0].aant_inw*100)+'% vrouw.';
+        if(p[0].p_00_14_jr>-1) {
+        result += '<h2>Leeftijdsverdeling</h2>';        
+        result += '<chart-doughnut values="['+p[0].p_00_14_jr+','+p[0].p_15_24_jr+','+p[0].p_25_44_jr+','+p[0].p_45_64_jr+','+p[0].p_65_eo_jr+']" labels="[\'Percentage 0-14\',\'Percentage 15-24\',\'Percentage 25-44\',\'Percentage 45-64\',\'Percentage 65 en ouder\']"></chart-doughnut>'
+        }
+        
+        if(p[0].p_ant_aru>-1) {
+        result += '<h2>Afkomst inwoners</h2>';        
+        result += '<chart-doughnut height="150" values="['+p[0].p_west_al+','+p[0].p_n_w_al+','+ (100 - p[0].p_n_w_al - p[0].p_west_al )+ ']" labels="[\'Percentage westese allochtonen\',\'Percentage niet westerse allochtonen\',\'overig\']"></chart-doughnut>'
+        result += '<h2>Afkomst Niet-westerse allochton</h2>';        
+        result += '<chart-bar values="[['+p[0].p_ant_aru+','+p[0].p_marokko+','+p[0].p_surinam+','+p[0].p_turkije+','+p[0].p_over_nw+ ']]" labels="[\'Ant.\',\'Mar.\',\'Sur.\',\'Tur.\',\'ove.\']"></chart-bar>'
+        
+        }
+        
+        return result;
+    },
+    
     showFeatures: function(d) {
-        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).bindPopup('Hello world!')
+        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).bindPopup(this.showPopup(d.detail.response))
    
-            this.activeLayer.options = {'title':'geojson',config:{'title':'geojson'}};
+            this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.buurtnaam}};
             this.layers.push(this.activeLayer);
         }
         else this.activeLayer.addData(d.detail.response);

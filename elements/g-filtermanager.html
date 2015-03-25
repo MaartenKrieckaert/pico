@@ -63,7 +63,7 @@ paper-interval-slider::shadow .knobInner {
    <div class="layer">
    
         <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
-            <paper-ripple fit></paper-ripple><span flex></span><paper-spinner class="white"  active={{l.loading}}></paper-spinner><paper-checkbox  checked="{{l.options.config.showup}}" on-click="{{stop}}" on-core-change="{{toggleOpac}}"></paper-checkbox>
+            <paper-ripple fit></paper-ripple><span flex></span><paper-spinner class="white"  active={{l.loading}}></paper-spinner><paper-checkbox  checked="{{l.options.config.isFilter}}" on-click="{{stop}}" on-core-change="{{toggleOpac}}"></paper-checkbox>
         </core-item>
         <core-collapse>
             <div class="filters">
@@ -121,7 +121,7 @@ Polymer({
         if(a.target.disabled) return false;
         var layer = c.templateInstance.model.l;
         
-        layer.setOpacity(layer.options.config.showup?1:0);
+        layer.setOpacity(layer.options.config.isFilter?1:0);
         this.updateFilters(layer)
     },
     reset: function(a,b,c) {
