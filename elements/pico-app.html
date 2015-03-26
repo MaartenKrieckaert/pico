@@ -11,6 +11,7 @@
 <link rel="import" href="../bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="./g-cas.html"> 
 <link rel="import" href="./g-buurtinfo.html"> 
+<link rel="import" href="./g-getfeatureinfo.html"> 
 <link rel="import" href="./g-layercatalogus.html"> -->
 
 <script src="../bower_components/leaflet/dist/leaflet.js"></script>     
@@ -88,6 +89,8 @@ paper-button {
     float: right;
     top: 6px;
 }
+
+
 g-layermanager {
     background: #eeeeec;;
 }
@@ -122,12 +125,13 @@ g-layermanager {
 <paper-action-dialog id="login" transition="core-transition-right">
   <g-cas account="{{account}}"></g-cas>
          <template if="{{account.ID!=undefined}}"> <paper-button affirmative  style="color:red"><A href="https://services.geodan.nl/cas/logout">Uitloggen</a></paper-button></template><paper-button affirmative  autofocus>Sluit</paper-button>
-</paper-dialog>
+</paper-action-dialog>
 <paper-action-dialog  class="scrolling"  id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">
   <g-layercatalogus  id="layerConfig" activeLayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
 <paper-button affirmative  autofocus>Sluit</paper-button>
-</paper-dialog>
+</paper-action-dialog>
 <g-buurtinfo layers="{{layers}}" map="{{map}}"></g-buurtinfo>
+<g-getfeatureinfo activelayers="{{layers}}" map="{{map}}"></g-getfeatureinfo>
 </template>
 <script>
  Polymer({
@@ -149,7 +153,7 @@ g-layermanager {
          resolutions: [3440.640, 1720.320, 860.160, 430.080, 215.040, 107.520, 53.760, 26.880, 13.440, 6.720, 3.360, 1.680, 0.840, 0.420, 0.21]
     })
   
-    var map = L.map(this.$.map,{crs:crs, minZoom: 0, maxZoom: 14, fadeAnimation: true});
+    var map = L.map(this.$.map,{crs:crs, minZoom: 0, maxZoom: 14, fadeAnimation: false});
     var topo =new L.tileLayer('http://services.geodan.nl/tms/1.0.0/topokaart_EPSG28992/{z}/{x}/{y}.png',{
        
         attribution: 'Kaart: &copy; <a href="http://maps.geodan.nl">Geodan</a>',
@@ -168,14 +172,18 @@ g-layermanager {
     
 
     
-    this.$.lufo.addEventListener('click',function(){
+    this.$.lufo.addEventListener('click',function(a){
+        a.preventDefault();
+        a.stopPropagation();
         map.addLayer(lufo).removeLayer(topo);
         lufo.bringToBack();
         this.setAttribute('raised',true);
         this.nextElementSibling.removeAttribute('raised');
     })
     
-    this.$.topo.addEventListener('click',function(){        
+    this.$.topo.addEventListener('click',function(a){  
+        a.preventDefault();
+        a.stopPropagation();
         map.addLayer(topo).removeLayer(lufo);
         topo.bringToBack();
         this.setAttribute('raised',true);

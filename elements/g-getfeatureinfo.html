@@ -1,0 +1,124 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<polymer-element name="g-getfeatureinfo" attributes="map activelayers">
+<template>
+<style>
+
+</style>
+<core-ajax method="get" id="ajaxRequest"
+   
+   url="{{infourl}}"  
+   withCredentials=true 
+   handleAs="json"
+   on-core-response="{{handleResponse}}"></core-ajax>
+
+   <paper-action-dialog layered="true" transition="core-transition-top" id="featureInfo" heading="Informatie" class="scrolling" layout vertical>
+  <div>
+   <template if="{{featureinfo.features}}">
+    <template if="{{featureinfo.features[0]==undefined}}">
+    Geen informatie gevonden
+  </template>
+  <template repeat="{{f in featureinfo.features}}">
+   <p><strong>{{f.id}} </strong><br/>
+   <table>
+   <template repeat="{{p in f.properties | toArray}}">
+   <tr><td>{{p.key}}</td><td>{{p.value}}</td></tr>
+   </template>
+   </table>
+   </p>
+  </template>
+  </template>
+ 
+  </div>
+  <paper-button affirmative  autofocus>Sluit</paper-button>
+</paper-action-dialog>
+</template>
+<script>
+
+Polymer({
+   featureinfoChanged: function(){
+        console.log(this.featureinfo);
+        this.$.featureInfo.open();
+   },
+   toArray: function(obj) {
+        var array = [];
+        for(key in obj) {
+            array.push({'key':key,'value':obj[key]});
+        }
+        return array;
+   },
+   mapChanged: function(){
+      var self = this;
+      var getFeatureInfo = function(p) {    
+          self.featureinfo = {};
+          var point = self.map.latLngToContainerPoint(p,self.map.getZoom()),
+             size = self.map.getSize();
+             var sources = {};
+             self.activelayers.forEach(function(layer) {
+                if(layer.wmsParams !== undefined) {
+                    sources[layer._url]?sources[layer._url].layers.push(layer.wmsParams.layers):sources[layer._url]={layers:[layer.wmsParams.layers]};
+                    
+                }
+             });  
+             var requests = [];
+             for(key in sources) {
+                var source = sources[key];
+                var params =  {
+                  request: 'GetFeatureInfo',
+                  service: 'WMS',
+                  srs: 'EPSG:4326',
+                  version: '1.1.1',                    
+                  bbox: self.map.getBounds().toBBoxString(),
+                  height: size.y,
+                  width: size.x,
+                  layers: source.layers,
+                  query_layers: source.layers,
+                  info_format: 'application/json',
+                  feature_count: source.layers.length
+                };
+                params[params.version === '1.3.0' ? 'i' : 'x'] = point.x;
+                params[params.version === '1.3.0' ? 'j' : 'y'] = point.y;
+                var url = key + L.Util.getParamString(params, key, true);
+                requests.push(url);
+             }
+             requests.forEach(function(url){
+                self.infourl = url;
+                self.$.ajaxRequest.go();
+                
+             });
+         
+             
+       }
+        if(this.map!=null) {          
+            this.map.on('click',function(e){
+                getFeatureInfo(e.latlng);
+            });
+        }
+    },
+  ready: function() {
+    this.infourl = '';
+    this.map = this.map || {};    
+    this.layers = this.activelayers || [];
+  },
+  handleResponse: function(d) {
+    if(d.detail&&d.detail.xhr&&d.detail.xhr.response&&d.detail.xhr.response.indexOf('{')==0) {
+        var info = JSON.parse(d.detail.xhr.response);
+        var featureinfo = this.featureinfo;
+        if(featureinfo.features) {
+            info.features.forEach(function(feature){
+              featureinfo.features.push(feature)
+            })
+        }
+        else {
+            featureinfo = info;
+        }
+        this.featureinfo = featureinfo;
+        
+    }    
+    
+  }
+  });
+</script>
+</polymer-element>

@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/core-item/core-item.html">
-
 <link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
@@ -59,16 +58,12 @@ core-collapse {
     background: white;
     padding: 10px;
 }
-.picoinfotext {
- 
-}
 .picoinfourl:hover {
     font-weight: bold;
 }
 .picoinfourl {
-text-align: right;
-
-margin-top: 10px;
+    text-align: right;
+    margin-top: 10px;
 }
 .zoomin core-item{
     color: red;
@@ -76,7 +71,6 @@ margin-top: 10px;
 .legendImg {
     font-weight: 500;
 }
-
 .zoomin .legendImg {
     border: red solid 1px;
 }
@@ -86,7 +80,7 @@ margin-top: 10px;
     border-color: #000;
   }
 </style>
- <div class="container">
+<div class="container">
 <template id="layerList" repeat="{{l in layersReversed}}">
     <div class="layer {{l.options.minZoom > l._map._zoom?'zoomin':'visible'}}" draggable="true"
             if="{{l.options.visibility}}"
@@ -99,7 +93,7 @@ margin-top: 10px;
           
    
         <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
-            <paper-ripple fit></paper-ripple><span flex></span><paper-spinner class="black"  active={{l.loading}}></paper-spinner>
+            <paper-ripple fit></paper-ripple><span flex></span><template if="{{l.options.minZoom <= l._map._zoom}}"><paper-spinner class="black"  active={{l.loading}}></paper-spinner></template>
         </core-item>
         <core-collapse>
             <div class="layerdetails">
@@ -129,6 +123,8 @@ margin-top: 10px;
 </template>
 
 <script>
+//Fancy function to easily move items in an array
+//as of: http://stackoverflow.com/questions/5306680/move-an-array-element-from-one-array-position-to-another/
 Array.prototype.move = function (old_index, new_index) {
     while (old_index < 0) {
         old_index += this.length;
@@ -145,12 +141,19 @@ Array.prototype.move = function (old_index, new_index) {
     this.splice(new_index, 0, this.splice(old_index, 1)[0]);   
 };
 Polymer({
+    //filter to remove decimals
     roundZero: function(value) {
         return Math.round(value);
     },
     draglayer: null,
     layersChanged: function(e) {
-        if(!e || e.length == 0) return false;
+        
+        
+        if(!e) return false;
+        if( e.length == 0) {
+        if(this.layers.length == 0)return false;
+        }
+        else {
         if(this.layers.length ==0) {
             //remove all layers, except the hardcoded ones
             var map = this.map;
@@ -182,6 +185,7 @@ Polymer({
                     this.loading = false;
                 });
             this.map.removeLayer(e[0].removed[0])
+        }
         }
         var l = this.layers.slice();
         l.reverse();
@@ -220,59 +224,69 @@ Polymer({
     },
     toggleLayer: function(e,b,c) {
         var layer = c.templateInstance.model.l; 
+        
         layer.options.visibility = layer.options.visibility?false:true;
-        if(!layer.options.visibility){
+        if(!layer.options.visibility || layer.options.noopacity){
             this.layers.splice(this.layers.indexOf(layer),1)
         }
     },    
-    dragStart: function(a,b,c){
+    dragStart: function(a,b,c){        
         a.dataTransfer.effectAllowed = 'move';
         a.dataTransfer.setData('text/html', c.innerHTML);    
         this.draglayer = c.templateInstance.model.l;
-        console.log(this.draglayer);
+        this.dropped = false;
+        this.dragged = this.layers.indexOf(this.draglayer);
         c.firstChild.nextElementSibling.firstElementChild.style.display='none'
     },
     dragleave: function(a,b,c){
-        if (c.className == 'layer'){
+        if (c.className.indexOf('layer')>=0){
+            c.style.opacity = 1;
+            c.style.background = '';
+            c.style.border = '';
             c.style.borderTopColor = 'rgb(200,200,200)';
             c.style.borderTopWidth = '1px';
             c.style.borderBottomColor = 'white'
             c.style.borderBottomWidth = '1px';
-            c.style.opacity = 1;
+            c.style.borderRadius = '';
         }
     },
     dragend: function(a,b,c) {
         c.firstElementChild.firstElementChild.style.display = 'block'
+        var fromIndex = this.layers.indexOf(this.draglayer);
+        if(this.dropped) {
+           this.dragged = fromIndex;
+        }
+        this.layers.move(fromIndex, this.dragged);
     },
     allowDrop: function(a,b,c){
+        var droponlayer = c.templateInstance.model.l;
+        var toIndex =  this.layers.indexOf(droponlayer);
+        var fromIndex = this.layers.indexOf(this.draglayer);
+        this.layers.move(fromIndex, toIndex);
         a.preventDefault();
         a.stopPropagation();
-        if (c.className == 'layer'){
+        if (c.className.indexOf('layer')>=0){
             var dragstop = c.templateInstance.model.l;
-            c.style.opacity = 0.8;
-            if(this.layers.indexOf(dragstop)<this.layers.indexOf(this.draglayer)) {
-                c.style.borderBottomWidth = '4px';
-                c.style.borderBottomColor = 'red';
-            }
-            else if(this.layers.indexOf(dragstop)==this.layers.indexOf(this.draglayer)) {
-                c.style.borderTopWidth = '2px';
-                c.style.borderTopColor = '#5264ae';
-                c.style.borderBottomWidth = '2px';
-                c.style.borderBottomColor = '#5264ae';
-            }
-            else {
-                c.style.borderTopWidth = '4px';
-                c.style.borderTopColor = 'red';
-            }
+            c.style.opacity = 0.4;
+            c.style.background = '#fde47f'
+            c.style.borderColor = 'rgb(200,200,200)';
+            c.style.border = '2px dashed';
+            c.style.borderRadius = '4px';
+            
+           
         }
     },
     dragStop: function(a,b,c){
-    c.firstChild.nextElementSibling.firstElementChild.style.display='block'
+        this.dropped = true;
+        c.firstChild.nextElementSibling.firstElementChild.style.display='block'
+        c.style.opacity = 1;
+        c.style.background = '';
+        c.style.border = '';
         c.style.borderTopColor = 'rgb(200,200,200)';
         c.style.borderTopWidth = '1px';
         c.style.borderBottomColor = 'white'
         c.style.borderBottomWidth = '1px';
-        c.style.opacity = 1;
+        c.style.borderRadius = '';
         //Make sure the draglayer is moved to a position before the droponlayer in the layer array  
         var droponlayer = c.templateInstance.model.l;
         var toIndex =  this.layers.indexOf(droponlayer);
