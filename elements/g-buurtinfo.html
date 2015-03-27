@@ -3,7 +3,7 @@
 <link rel="import" href="../bower_components/chart-elements/chart-bar.html">
 
 <link rel="import" href="../bower_components/core-ajax/core-ajax.html">
-<polymer-element name="g-buurtinfo" attributes="layers map">
+<polymer-element name="g-buurtinfo" attributes="layers map enabled">
 
 <template>
 <core-ajax id="wfsreq"
@@ -16,6 +16,10 @@ on-core-response="{{showFeatures}}"
 <script>
 
 Polymer({
+    enabledChanged:function(){
+        this.mapChanged()
+        
+    },
  puntenChanged: function(){
         if (this.punten.length == 0) return false;
         var feature = '<gml:MultiPoint srsName="http://www.opengis.net/gml/srs/epsg.xml#4326" xmlns:gml="http://www.opengis.net/gml" >';
@@ -34,26 +38,30 @@ Polymer({
         req.url='http://pico.geodan.nl/geoserver/ows?service=WFS&outputFormat=application/json&srsName=EPSG:4326';
         req.go();
     },
- mapChanged: function(){
-            var self = this;
-           var addPoint = function(p,add) {       
-if(self.activeLayer){
-                    self.layers.splice(self.layers.indexOf(self.activeLayer),1);
-                    
-                    delete self.activeLayer;
-                    }           
-               if(!add) {
-                    self.punten = [];
-                    
+    addPoint: function(e) {
+       
+         var p = e.latlng, add = e.originalEvent.ctrlKey;
+                if(this.activeLayer){
+                  this.layers.splice(this.layers.indexOf(this.activeLayer),1);
+                  delete this.activeLayer;
+                }           
+            if(!add) {
+                this.punten = [];
+            }
+            this.punten.push(p);
+    },
+    mapChanged: function(){
+            
+         
+            if(this.map!=null){
+                if(this.enabled) {            
+                this.map.on('click',this.addPoint,this);
                 }
-                self.punten.push(p);
-                
-           }
-            if(this.map!=null) {          
-                this.map.on('click',function(e){
-                    addPoint(e.latlng,e.originalEvent.ctrlKey);
-                });
-                  
+                    else {
+                        
+                    this.map.off('click',this.addPoint,this);
+                }                
+             
             }
           
         
@@ -69,7 +77,7 @@ if(self.activeLayer){
         }*/
         
         result += 'Dit is '+p[0].buurtnaam+' in '+p[0].wijknaam+' gelegen in de gemeente <b>'+p[0].gemnaam+'</b>.<br/>';
-        result += 'Hier wonen '+p[0].aant_inw+' mensen waarvan '+Math.round(p[0].aant_man/p[0].aant_inw)+'% man en '+Math.round(p[0].aant_vrouw/p[0].aant_inw)+'% vrouw.';
+        result += 'Hier wonen '+p[0].aant_inw+' mensen waarvan '+Math.round(p[0].aant_man/p[0].aant_inw*100)+'% man en '+Math.round(p[0].aant_vrouw/p[0].aant_inw*100)+'% vrouw.';
         if(p[0].p_00_14_jr>-1) {
         result += '<h2>Leeftijdsverdeling</h2>';        
         result += '<chart-doughnut values="['+p[0].p_00_14_jr+','+p[0].p_15_24_jr+','+p[0].p_25_44_jr+','+p[0].p_45_64_jr+','+p[0].p_65_eo_jr+']" labels="[\'Percentage 0-14\',\'Percentage 15-24\',\'Percentage 25-44\',\'Percentage 45-64\',\'Percentage 65 en ouder\']"></chart-doughnut>'
@@ -87,7 +95,7 @@ if(self.activeLayer){
     },
     
     showFeatures: function(d) {
-        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).    bindPopup(this.showPopup(d.detail.response))
+        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).    bindPopup(this.showPopup(d.detail.response));
             this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.buurtnaam}};
             
             this.layers.push(this.activeLayer);
@@ -101,7 +109,7 @@ if(self.activeLayer){
         
     },
   ready: function() {
-        
+        this.enabled = this.enabled || false;
         this.layers = this.layers || [];        
         this.punten = this.punten || [];
         this.map = this.map || {};

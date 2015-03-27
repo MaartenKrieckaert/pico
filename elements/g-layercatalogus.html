@@ -11,7 +11,7 @@
 <link rel="import" href="../bower_components/paper-dropdown/paper-dropdown.html">
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<polymer-element name="g-layercatalogus" attributes="activeLayers account filters">
+<polymer-element name="g-layercatalogus" attributes="activeLayers account filters mapType">
 <template>
 <style>
 .layerItem{
@@ -150,7 +150,15 @@ Polymer({
             }
             return l;
         }
-        this.layers = layerset.map(makeLeaflet);
+        switch(this.mapType){
+            case 'leaflet': 
+            this.layers = layerset.map(makeLeaflet);
+            break;
+            default:
+            this.layers = layerset.map(makeLeaflet);
+            break;
+        }
+            
         this.parseLayers(this.layers);               
     }
   },
@@ -229,6 +237,7 @@ Polymer({
       layer.options.visibility?this.activeLayers.push(layer):this.activeLayers.splice(this.activeLayers.indexOf(layer),1);
   },
   ready: function() {
+    this.mapType = this.mapType || 'leaflet';
     this.layers = this.layers || [];
     this.filters = this.filters || [];
     this.catalogus = this.catalogus || [];

@@ -2,7 +2,7 @@
 <link rel="import" href="../bower_components/core-ajax/core-ajax.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<polymer-element name="g-getfeatureinfo" attributes="map activelayers">
+<polymer-element name="g-getfeatureinfo" attributes="map activelayers enabled">
 <template>
 <style>
 
@@ -38,8 +38,11 @@
 <script>
 
 Polymer({
+    enabledChanged: function() {
+    this.mapChanged();
+    },
    featureinfoChanged: function(){
-        console.log(this.featureinfo);
+        
         this.$.featureInfo.open();
    },
    toArray: function(obj) {
@@ -49,9 +52,9 @@ Polymer({
         }
         return array;
    },
-   mapChanged: function(){
-      var self = this;
-      var getFeatureInfo = function(p) {    
+   getFeatureInfo : function(e) {    
+           var p = e.latlng;
+            var self = this;
           self.featureinfo = {};
           var point = self.map.latLngToContainerPoint(p,self.map.getZoom()),
              size = self.map.getSize();
@@ -90,17 +93,23 @@ Polymer({
              });
          
              
-       }
-        if(this.map!=null) {          
-            this.map.on('click',function(e){
-                getFeatureInfo(e.latlng);
-            });
+       },
+   mapChanged: function(){
+    
+        if(this.map!=null) {
+            if(this.enabled) {
+            this.map.on('click',this.getFeatureInfo,this);
+            }
+            else {
+            this.map.off('click',this.getFeatureInfo,this);
+            }
         }
     },
   ready: function() {
     this.infourl = '';
     this.map = this.map || {};    
     this.layers = this.activelayers || [];
+    this.enabled = this.enabled || true;
   },
   handleResponse: function(d) {
     if(d.detail&&d.detail.xhr&&d.detail.xhr.response&&d.detail.xhr.response.indexOf('{')==0) {
