@@ -74,6 +74,12 @@ core-collapse {
 .zoomin .legendImg {
     border: red solid 1px;
 }
+.dragging {
+  opacity: 0.4;
+  background : #fde47f;
+  border : 2px dashed rgb(100,100,100);
+  border-radius: 4px;
+}
 </style>
 <style shim-shadowdom>
   paper-spinner.black::shadow .circle {
@@ -145,10 +151,20 @@ Polymer({
     roundZero: function(value) {
         return Math.round(value);
     },
+    hasClass: function(classes, c) {
+        var classlist = classes.split(' ');
+        return classlist.reduce(function(a,b){if(b.toLowerCase()==c.toLowerCase()){return a = true;}return a},false);
+    },
+    removeClass: function(classes, c) {
+         var classlist = classes.split(' ');
+         return classlist.reduce(function(a,b){if(b!=c){a=a+b+' '}return a},'')
+    },
+    addClass: function(classes,c) {
+        var classlist = this.removeClass(classes,c);
+        return classlist+=c;
+    },
     draglayer: null,
     layersChanged: function(e) {
-        
-        
         if(!e) return false;
         if( e.length == 0) {
         if(this.layers.length == 0)return false;
@@ -197,7 +213,7 @@ Polymer({
         for(var i=0;i<this.layers.length;i++){
             if(this.layers[i]._map== null) {
                 map.addLayer(this.layers[i])
-                    this.layers[i].on('loading',function(f){
+                this.layers[i].on('loading',function(f){
                     this.loading = true;
                 });
                 this.layers[i].on('load',function(f){
@@ -236,21 +252,16 @@ Polymer({
         this.draglayer = c.templateInstance.model.l;
         this.dropped = false;
         this.dragged = this.layers.indexOf(this.draglayer);
+        //SMO: hack to stop Chrome from using the paper-ripple as reference
         c.firstChild.nextElementSibling.firstElementChild.style.display='none'
     },
     dragleave: function(a,b,c){
-        if (c.className.indexOf('layer')>=0){
-            c.style.opacity = 1;
-            c.style.background = '';
-            c.style.border = '';
-            c.style.borderTopColor = 'rgb(200,200,200)';
-            c.style.borderTopWidth = '1px';
-            c.style.borderBottomColor = 'white'
-            c.style.borderBottomWidth = '1px';
-            c.style.borderRadius = '';
-        }
+        if(c.templateInstance.model.hasClass(c.className,'layer')){
+            c.className = c.templateInstance.model.removeClass(c.className,'dragging');
+        }        
     },
     dragend: function(a,b,c) {
+        //SMO: hack to stop Chrome from using the paper-ripple as reference
         c.firstElementChild.firstElementChild.style.display = 'block'
         var fromIndex = this.layers.indexOf(this.draglayer);
         if(this.dropped) {
@@ -265,29 +276,21 @@ Polymer({
         this.layers.move(fromIndex, toIndex);
         a.preventDefault();
         a.stopPropagation();
+        if(c.templateInstance.model.hasClass(c.className,'layer')){
+            c.className = c.templateInstance.model.addClass(c.className,'dragging');
+        }
         if (c.className.indexOf('layer')>=0){
             var dragstop = c.templateInstance.model.l;
-            c.style.opacity = 0.4;
-            c.style.background = '#fde47f'
-            c.style.borderColor = 'rgb(200,200,200)';
-            c.style.border = '2px dashed';
-            c.style.borderRadius = '4px';
+          
             
            
         }
     },
     dragStop: function(a,b,c){
         this.dropped = true;
+        //SMO: hack to stop Chrome from using the paper-ripple as reference
         c.firstChild.nextElementSibling.firstElementChild.style.display='block'
-        c.style.opacity = 1;
-        c.style.background = '';
-        c.style.border = '';
-        c.style.borderTopColor = 'rgb(200,200,200)';
-        c.style.borderTopWidth = '1px';
-        c.style.borderBottomColor = 'white'
-        c.style.borderBottomWidth = '1px';
-        c.style.borderRadius = '';
-        //Make sure the draglayer is moved to a position before the droponlayer in the layer array  
+         c.className = c.templateInstance.model.removeClass(c.className,'dragging');
         var droponlayer = c.templateInstance.model.l;
         var toIndex =  this.layers.indexOf(droponlayer);
         var fromIndex = this.layers.indexOf(this.draglayer);
