@@ -45,6 +45,12 @@ paper-dropdown-menu,paper-dropdown {
 </style>
 <core-ajax id="getConfig"
     auto
+    url="../config.json"
+    handeAs="json"
+    on-core-response="{{initialConfig}}"    
+></core-ajax>
+<core-ajax id="getConfig"
+    auto
     url="{{url}}"
     handeAs="json"
     on-core-response="{{handleResponse}}"
@@ -89,6 +95,10 @@ Polymer({
     var open=zoek==""?false:true; //to make sure all core-collapse are open when searching
     this.updateCatalogus(resultaat,open);
   },
+  initialConfig: function(d) {
+    var response = d.detail.response;
+    this.config = response;
+  },
   //Once an GeodanMaps account is acquired it will set the url to request the list of configurations
   //from the document service.
   accountChanged: function(){
@@ -103,8 +113,8 @@ Polymer({
         //just a list of configs
         this.configs = response;
         //TODO: choose which configuration is used (currently the first)
-        this.$.getConfig.url =  this.docurl + '/data/'+this.account.OrganisationCode+'/config/'+this.configs[0].name;
-        this.activeConfig = this.configs[0].title;
+        this.$.getConfig.url =  this.docurl + '/data/'+this.account.OrganisationCode+'/config/'+this.config.name;
+        this.activeConfig = this.config.title;
     }
     else {
         //actual config
@@ -237,6 +247,7 @@ Polymer({
       layer.options.visibility?this.activeLayers.push(layer):this.activeLayers.splice(this.activeLayers.indexOf(layer),1);
   },
   ready: function() {
+    this.config = {};
     this.mapType = this.mapType || 'leaflet';
     this.layers = this.layers || [];
     this.filters = this.filters || [];

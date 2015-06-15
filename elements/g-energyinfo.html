@@ -1,0 +1,130 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../elements/chart-hbar.html">
+ 
+ 
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+<polymer-element name="g-energyinfo" attributes="layers map enabled">
+
+<template>
+<core-ajax id="wfsreq"
+on-core-response="{{showFeatures}}"
+ handleAs="json"
+>
+</core-ajax>
+
+</template>
+<script>
+
+Polymer({
+    enabledChanged:function(){
+        this.mapChanged()
+        
+    },
+ puntenChanged: function(){
+        if (this.punten.length == 0) return false;
+        var feature = '<gml:MultiPoint srsName="http://www.opengis.net/gml/srs/epsg.xml#4326" xmlns:gml="http://www.opengis.net/gml" >';
+        var punts = this.punten;
+        
+        for(var i = 0;i<punts.length;i++) {
+            var punt = '<gml:pointMember><gml:Point><gml:coordinates>'+punts[i].lng+','+punts[i].lat+'</gml:coordinates></gml:Point></gml:pointMember>'
+            feature+=punt
+        }
+        feature+='</gml:MultiPoint>';
+        var req = this.$.wfsreq;
+        req.method = 'POST';
+        req.contentType = 'Content-Type:application/xml';
+        req.body = '<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd" srsName="EPSG:4326" ><wfs:Query typeName="feature:view_pc6_aggr" xmlns:feature="pico" srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"><ogc:And><ogc:Intersects><ogc:PropertyName>geom</ogc:PropertyName>'+feature+     '</ogc:Intersects></ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>';
+        req.url='http://pico.geodan.nl/geoserver/ows?service=WFS&outputFormat=application/json&srsName=EPSG:4326';
+        req.go();
+    },
+    addPoint: function(e) {
+       
+         var p = e.latlng, add = e.originalEvent.ctrlKey;
+         //TODO: hier gaat het mis als de laag uit de layermanager is gegooid staat hij hier nog
+                if(this.activeLayer){
+                  this.layers.splice(this.layers.indexOf(this.activeLayer),1);
+                  delete this.activeLayer;
+                }           
+            if(!add) {
+                this.punten = [];
+            }
+            this.punten.push(p);
+    },
+    mapChanged: function(){
+            
+         
+            if(this.map!=null){
+                if(this.enabled) {            
+                this.map.on('click',this.addPoint,this);
+                }
+                    else {
+                        
+                    this.map.off('click',this.addPoint,this);
+                }                
+             
+            }
+          
+        
+    },
+    createText: function(response) {
+        var result ='';
+        var p = response.features.map(function(d){
+            return d.properties;
+        }); 
+        var percToAbs = function (p,tot) {
+            return p<0?0:p*tot/100;
+        }
+        var absToPerc = function (a,tot) {
+            return Math.round(a/tot*100);
+        }
+        var sum = p.reduce(function(a,i){
+           
+            a.besp_labelb += i.besp_labelb;
+            a.elec_alliander += i.elec_alliander;
+            a.elec_output += i.elec_output;
+            a.gas_alliander += i.gas_alliander;
+            a.inv_labelb += i.inv_labelb;
+            return a;
+        },{besp_labelb:0,elec_alliander:0,elec_output:0,gas_alliander:0,inv_labelb:0});   
+        
+        
+        result +="<h2>Gas</h2>";
+        result += '<chart-hbar labels=["verbruik","besparing"] values="[['+Math.round(sum.gas_alliander)+',0],[0,'+Math.round(sum.besp_labelb)+']]" titles=["verbruik","besparing"]></chart-hbar>'
+        result += 'Energieneutraliteit Gas: '+Math.round(sum.gas_alliander-sum.besp_labelb)+'m3';
+        result +="<h2>Electra</h2>"
+        result += '<chart-hbar labels=["verbruik","opwekking"] values="[['+Math.round(sum.elec_alliander)+',0],[0,'+Math.round(sum.elec_output)+']]" titles=["verbruik","opwekking"]></chart-hbar>'
+        result += '<br/>Energieneutraliteit Electriciteit: '+Math.round(sum.elec_alliander-sum.elec_output)+'kWh';
+        
+        
+        
+        
+        return result;
+    },
+    
+    showFeatures: function(d) {
+        if(d.detail.response.features.length > 0) {
+        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).    bindPopup(this.createText(d.detail.response));
+            this.activeLayer.options = {noopacity:true,config:{'title':'Energiebesparing'}};
+            
+            this.layers.push(this.activeLayer);
+        }
+        else {
+            
+            this.activeLayer.addData(d.detail.response);
+        }
+        }
+
+        
+    },
+  ready: function() {
+        this.enabled = this.enabled || false;
+        this.layers = this.layers || [];        
+        this.punten = this.punten || [];
+        this.map = this.map || {};
+  }
+  });
+</script>
+  
+
+</polymer-element>

@@ -1,0 +1,127 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../bower_components/core-field/core-field.html">
+<link rel="import" href="../bower_components/core-menu/core-menu.html">
+<link rel="import" href="../bower_components/core-list/core-list.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+
+<script src="../bower_components/leaflet-omnivore/leaflet-omnivore.min.js"></script>
+
+<polymer-element name="g-geosearch" attributes="map">
+<template>
+<style>
+
+paper-item {
+    z-index: 1000;
+    background: rgba(255,255,255,0.8)
+}
+paper-item:hover {
+    background: rgba(188,188,188,0.8);
+}
+paper-item[selected=true] {
+   border: solid 1px #3F51B5;
+}
+</style>
+<core-ajax id="geoSuggest"
+    
+    
+    handeAs="json"
+    on-core-response="{{handleSuggest}}"
+    withCredentials=true
+></core-ajax>
+<core-ajax id="geoLookup"
+    
+    
+    handeAs="json"
+    on-core-response="{{handleLookup}}"
+    withCredentials=true
+></core-ajax>
+<core-field on-click="{{stopProp}}">
+<paper-input id="zoekVeld" label="zoek een locatie" on-keyup="{{inputChange}}"></paper-input>
+<core-icon icon="search" style="cursor:pointer" on-click="{{lookupFirst}}" ><paper-ripple fit></paper-ripple></core-icon>
+</core-field>
+
+<paper-shadow>
+<template repeat="{{model in suggestions}}">
+<paper-item selected="{{model.selected}}" on-click="{{locationSelected}}" id="{{model.id}}" label="{{model.displayname}}">{{model.displayname}}</paper-item>
+</template>
+</paper-shadow>
+
+<!--core-menu>
+<template repeat="{{suggest in suggestions}}">
+<paper-item id="{{suggest.id}}" label="{{suggest.displayname}}"></paper-item>
+</template>
+</core-menu-->
+</template>
+<script>
+
+Polymer({
+    locationSelected: function(a,b,c) {
+      a.stopPropagation();
+      this.lookup(c.id);
+    },
+    lookupFirst: function(){
+        var id;
+        if(this.suggestions.length>0) id = this.suggestions[this.iselected].id
+        this.lookup(id);
+    },
+    lookup: function(id) {
+      if(!id) return false;
+      this.$.geoLookup.url = "https://services.geodan.nl/geosearch/lookup?q="+id;
+      this.$.geoLookup.go();
+    },
+    stopProp: function(e){
+        e.stopPropagation()
+    },
+    inputChange: function(e,b,c) {
+        if(c.value!=''||c.value!==undefined){
+         if (e.keyCode == 13){ //enter
+              //TODO: fix error
+              this.lookup(this.suggestions[this.iselected].id);     	 	
+     	 }
+     	 else if (e.keyCode == 40){ //down arrow
+     	 	 if(this.iselected < this.suggestions.length-1) this.iselected++;
+     	 	  this.suggestions.forEach(function(s){s.selected=false});
+     	 	 this.suggestions[this.iselected].selected=true;
+             this.$.zoekVeld.value=this.suggestions[this.iselected].displayname;
+     	 }
+     	 else if (e.keyCode == 38){ //up arrow
+            if(this.iselected > 0)  this.iselected--;
+             this.suggestions.forEach(function(s){s.selected=false});
+     	 	 this.suggestions[this.iselected].selected=true;
+             this.$.zoekVeld.value=this.suggestions[this.iselected].displayname;
+     	 }
+         else {
+         this.iselected = 0;
+        this.$.geoSuggest.url = "https://services.geodan.nl/geosearch/suggest?q="+c.value;
+        this.$.geoSuggest.go();
+        }
+        }
+    },
+    handleSuggest:function(d) {
+        var doc = JSON.parse(d.detail.response);
+        this.suggestions = doc.response.docs;  
+        if(this.suggestions.length > 0)
+        this.suggestions[0].selected=true;        
+    },
+    handleLookup:function(d) {
+        var doc = JSON.parse(d.detail.response);
+        this.suggestions = [];
+        this.$.zoekVeld.value="";
+        this.map.removeLayer(this.result)
+        this.result = omnivore.wkt.parse(doc.response.docs[0].geom);
+        this.result.addTo(this.map);
+        this.result.on('click',function(){this.map.removeLayer(this.result)},this);
+        this.map.fitBounds(this.result.getBounds());
+        
+    },
+    ready: function(){
+        this.suggestions = [];
+        this.map = this.map || {}; 
+        this.result = {};
+        this.iselected = 0;
+        L.Icon.Default.imagePath = 'bower_components/leaflet/dist/images'
+    }
+});
+</script>
+</polymer-element>

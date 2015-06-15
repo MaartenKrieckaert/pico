@@ -40,7 +40,7 @@ Polymer({
     },
     addPoint: function(e) {
        
-         var p = e.latlng, add = e.originalEvent.ctrlKey;
+         var p = e.latlng, add = e.originalEvent.shiftKey;
                 if(this.activeLayer){
                   this.layers.splice(this.layers.indexOf(this.activeLayer),1);
                   delete this.activeLayer;
@@ -66,37 +66,63 @@ Polymer({
           
         
     },
-    showPopup: function(response) {
+    createText: function(response) {
         var result ='';
-        var p = [];
-        for(var i=0; i<response.features.length;i++){
-            p.push(response.features[i].properties);
-        }   
-        /*for(var i = 0;i<properties.length;i++){
-            result += properties[i].buurtnaam + '<br/>'
-        }*/
-        
-        result += 'Dit is '+p[0].buurtnaam+' in '+p[0].wijknaam+' gelegen in de gemeente <b>'+p[0].gemnaam+'</b>.<br/>';
-        result += 'Hier wonen '+p[0].aant_inw+' mensen waarvan '+Math.round(p[0].aant_man/p[0].aant_inw*100)+'% man en '+Math.round(p[0].aant_vrouw/p[0].aant_inw*100)+'% vrouw.';
-        if(p[0].p_00_14_jr>-1) {
-        result += '<h2>Leeftijdsverdeling</h2>';        
-        result += '<chart-doughnut values="['+p[0].p_00_14_jr+','+p[0].p_15_24_jr+','+p[0].p_25_44_jr+','+p[0].p_45_64_jr+','+p[0].p_65_eo_jr+']" labels="[\'Percentage 0-14\',\'Percentage 15-24\',\'Percentage 25-44\',\'Percentage 45-64\',\'Percentage 65 en ouder\']"></chart-doughnut>'
+        var p = response.features.map(function(d){
+            return d.properties;
+        }); 
+        var percToAbs = function (p,tot) {
+            return p<0?0:p*tot/100;
         }
-        
-        if(p[0].p_ant_aru>-1) {
-        result += '<h2>Afkomst inwoners</h2>';        
-        result += '<chart-doughnut height="150" values="['+p[0].p_west_al+','+p[0].p_n_w_al+','+ (100 - p[0].p_n_w_al - p[0].p_west_al )+ ']" labels="[\'Percentage westese allochtonen\',\'Percentage niet westerse allochtonen\',\'overig\']"></chart-doughnut>'
-        result += '<h2>Afkomst Niet-westerse allochton</h2>';        
-        result += '<chart-bar values="[['+p[0].p_ant_aru+','+p[0].p_marokko+','+p[0].p_surinam+','+p[0].p_turkije+','+p[0].p_over_nw+ ']]" labels="[\'Ant.\',\'Mar.\',\'Sur.\',\'Tur.\',\'ove.\']"></chart-bar>'
-        
+        var absToPerc = function (a,tot) {
+            return Math.round(a/tot*100);
         }
+        var sum = p.reduce(function(a,i){
+            var tot =i.aant_inw;
+            a.inwoners += i.aant_inw;
+            a.man += i.aant_man;
+            a.vrouw +=i.aant_vrouw;
+            a.p14 += percToAbs(i.p_00_14_jr,tot);
+            a.p24 += percToAbs(i.p_15_24_jr,tot);
+            a.p44 += percToAbs(i.p_25_44_jr,tot);
+            a.p64 += percToAbs(i.p_45_64_jr,tot);
+            a.peo += percToAbs(i.p_65_eo_jr,tot);
+            a.pwa += percToAbs(i.p_west_al,tot);
+            a.paa += percToAbs(i.p_ant_aru,tot);
+            a.pma += percToAbs(i.p_marokko,tot);
+            a.psu += percToAbs(i.p_surinam,tot);
+            a.ptu += percToAbs(i.p_turkije,tot);
+            a.pon += percToAbs(i.p_over_nw,tot);
+            a.pnw += percToAbs(i.p_n_w_al,tot);            
+            a.total = a.p14+a.p24+a.p44+a.p64+a.peo;
+            
+            return a;
+        },{inwoners:0,man:0,vrouw:0,p14:0,p24:0,p44:0,p64:0,peo:0,pwa:0,paa:0,pma:0,psu:0,ptu:0,pon:0,pnw:0});   
+        console.log(sum);
+        
+
+        
+        result += '<h2>'+p[0].gemnaam+'</h2>';
+        result += 'In het gekozen gebied wonen '+sum.inwoners+' mensen waarvan '+absToPerc(sum.man,sum.inwoners)+'% man en '+absToPerc(sum.vrouw,sum.inwoners)+'% vrouw.';
+        
+        result += '<h3>Leeftijdsverdeling</h3>';        
+        result += '<chart-doughnut values="['+absToPerc(sum.p14,sum.inwoners)+','+absToPerc(sum.p24,sum.inwoners)+','+absToPerc(sum.p44,sum.inwoners)+','+absToPerc(sum.p64,sum.inwoners)+','+absToPerc(sum.peo,sum.inwoners)+']" labels="[\'% 0-14\',\'% 15-24\',\'% 25-44\',\'% 45-64\',\'% 65 en ouder\']"></chart-doughnut>'
+        
+        
+
+        //TODO: meer kleuren in de grafiek
+
+        result += '<h3>Afkomst inwoners</h3>';        
+        result += '<chart-doughnut height="150" colors="[\'#8c510a\', \'#d8b365\', \'#f6e8c3\', \'#f5f5f5\', \'#c7eae5\', \'#5ab4ac\',\'#01665e\']" values="['+absToPerc(sum.pwa,sum.inwoners)+','+absToPerc(sum.paa,sum.inwoners)+','+absToPerc(sum.pma,sum.inwoners)+','+absToPerc(sum.psu,sum.inwoners)+','+absToPerc(sum.ptu,sum.inwoners)+','+absToPerc(sum.pon,sum.inwoners)+','+ (100 - absToPerc(sum.pnw,sum.inwoners) - absToPerc(sum.pwa,sum.inwoners) )+ ']" labels="[\'% westese allochtonen\',\'% Antilianen\',\'% Marokanen\',\'% Surinamers\',\'% Turken\',\'% overige niet westerse allochtonen\',\'% Autochtonen\']"></chart-doughnut>'       
+        
+        
         
         return result;
     },
     
     showFeatures: function(d) {
-        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).    bindPopup(this.showPopup(d.detail.response));
-            this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.buurtnaam}};
+        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).    bindPopup(this.createText(d.detail.response));
+            this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.gemnaam}};
             
             this.layers.push(this.activeLayer);
         }
