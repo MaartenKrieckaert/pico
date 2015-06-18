@@ -158,7 +158,7 @@ paper-icon-button[enabled=true].side {
 
 <paper-action-dialog id="login" transition="core-transition-right">
   <g-cas account="{{account}}"></g-cas>
-         <template if="{{account.ID!=undefined}}"> <paper-button affirmative  style="color:red"><A href="https://services.geodan.nl/cas/logout">Uitloggen</a></paper-button></template><paper-button affirmative  autofocus>Sluit</paper-button>
+         <template if="{{account.ID!=undefined}}"> <paper-button affirmative  style="color:red"><A href="{{logoutUrl}}">Uitloggen</a></paper-button></template><paper-button affirmative  autofocus>Sluit</paper-button>
 </paper-action-dialog>
 <paper-action-dialog  class="scrolling"  id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">
   <g-layercatalogus  id="layerConfig" mapType="leaflet" activeLayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
@@ -189,7 +189,7 @@ paper-icon-button[enabled=true].side {
         this.layers = this.layers || [];
         this.filters = this.filters || [];
         this.account = this.account || {};
-        //TODO
+        this.logoutUrl = "https://services.geodan.nl/geocas/cas-logout.jsp?forwardUrl="+ window.location.href;
        
     
     var crs = new L.Proj.CRS.TMS(

@@ -34,7 +34,7 @@ Polymer({
         var req = this.$.wfsreq;
         req.method = 'POST';
         req.contentType = 'Content-Type:application/xml';
-        req.body = '<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd" srsName="EPSG:4326" ><wfs:Query typeName="feature:view_pc6_aggr" xmlns:feature="pico" srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"><ogc:And><ogc:Intersects><ogc:PropertyName>geom</ogc:PropertyName>'+feature+     '</ogc:Intersects></ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>';
+        req.body = '<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd" srsName="EPSG:4326" ><wfs:Query typeName="feature:view_aggr_v3" xmlns:feature="pico" srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"><ogc:And><ogc:Intersects><ogc:PropertyName>geom</ogc:PropertyName>'+feature+     '</ogc:Intersects></ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>';
         req.url='http://pico.geodan.nl/geoserver/ows?service=WFS&outputFormat=application/json&srsName=EPSG:4326';
         req.go();
     },
@@ -82,19 +82,19 @@ Polymer({
            
             a.besp_labelb += i.besp_labelb;
             a.elec_alliander += i.elec_alliander;
-            a.elec_output += i.elec_output;
+            a.pv_output += i.pv_output;
             a.gas_alliander += i.gas_alliander;
             a.inv_labelb += i.inv_labelb;
             return a;
-        },{besp_labelb:0,elec_alliander:0,elec_output:0,gas_alliander:0,inv_labelb:0});   
+        },{besp_labelb:0,elec_alliander:0,pv_output:0,gas_alliander:0,inv_labelb:0});   
         
         
         result +="<h2>Gas</h2>";
         result += '<chart-hbar labels=["verbruik","besparing"] values="[['+Math.round(sum.gas_alliander)+',0],[0,'+Math.round(sum.besp_labelb)+']]" titles=["verbruik","besparing"]></chart-hbar>'
         result += 'Energieneutraliteit Gas: '+Math.round(sum.gas_alliander-sum.besp_labelb)+'m3';
         result +="<h2>Electra</h2>"
-        result += '<chart-hbar labels=["verbruik","opwekking"] values="[['+Math.round(sum.elec_alliander)+',0],[0,'+Math.round(sum.elec_output)+']]" titles=["verbruik","opwekking"]></chart-hbar>'
-        result += '<br/>Energieneutraliteit Electriciteit: '+Math.round(sum.elec_alliander-sum.elec_output)+'kWh';
+        result += '<chart-hbar labels=["verbruik","opwekking"] values="[['+Math.round(sum.elec_alliander)+',0],[0,'+Math.round(sum.pv_output)+']]" titles=["verbruik","opwekking"]></chart-hbar>'
+        result += '<br/>Energieneutraliteit Electriciteit: '+Math.round(sum.elec_alliander-sum.pv_output)+'kWh';
         
         
         

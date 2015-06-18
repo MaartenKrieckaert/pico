@@ -192,7 +192,9 @@ Polymer({
             }
             info.features.forEach(function(f){
                 fields.forEach(function(p){
+                    
                     p.value = f.properties[p.field];
+                    if(typeof(p.value)=="number") p.value = Math.round(p.value);
                 })
             })
         
