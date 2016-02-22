@@ -108,6 +108,14 @@ Polymer({
             this.activeLayer.options = {noopacity:true,config:{'title':'Energiebesparing'}};
             
             this.layers.push(this.activeLayer);
+
+            var showPopup = function(e) {
+                if(e.layer.openPopup) {
+                    e.layer.openPopup();
+                    e.layer._map.off('layeradd',showPopup);
+                }
+            };
+            this.map.on('layeradd',showPopup);
         }
         else {
             
