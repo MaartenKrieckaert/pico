@@ -121,7 +121,7 @@ Polymer({
     },
     
     showFeatures: function(d) {
-        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).    bindPopup(this.createText(d.detail.response)).openPopup();
+        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).bindPopup(this.createText(d.detail.response)).openOn(this.map);
             this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.gemnaam}};
             
             this.layers.push(this.activeLayer);
