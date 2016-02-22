@@ -125,10 +125,11 @@ Polymer({
             this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.gemnaam}};
             
             this.layers.push(this.activeLayer);
-            this.map.on('layeradd',function(a,b,c){
-                var popup = a.layer.popup;
-                popup.openOn(a.layer.map)
-            })
+            var showPopup = function(e) {
+                e.layer.popup.openPopup;
+                e.layer.map.off('layeradd',showPopup)
+            };
+            this.map.on('layeradd',showPopup)
         }
         else {
             
