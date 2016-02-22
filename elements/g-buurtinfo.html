@@ -126,8 +126,8 @@ Polymer({
             
             this.layers.push(this.activeLayer);
             var showPopup = function(e) {
-                e.layer.openPopup;
-                e.layer.map.off('layeradd',showPopup)
+                e.layer.openPopup();
+                e.layer._map.off('layeradd',showPopup)
             };
             this.map.on('layeradd',showPopup)
         }
