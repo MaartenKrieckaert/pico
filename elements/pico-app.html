@@ -140,9 +140,9 @@ paper-icon-button[enabled=true].side {
 
     </div>
     <div id="mode-buttons">
-        <paper-icon-button class="side" enabled="{{addLayer}}" raised id="addlayer" icon="add"  on-click="{{toggleAddLayer}}"></paper-icon-button>
-        <paper-icon-button class="side" id="acivateBuurtInfo" enabled="{{buurtinfo}}" icon="assessment" on-click="{{toggleBuurtInfo}}"></paper-icon-button>
-        <paper-icon-button class="side" id="acivateEnergyInfo" enabled="{{energyinfo}}" icon="image:wb-sunny" on-click="{{toggleEnergyInfo}}"></paper-icon-button>
+        <paper-icon-button title="Kaartlagen" class="side" enabled="{{addLayer}}" raised id="addlayer" src="../style/addlayer.png"  on-click="{{toggleAddLayer}}"></paper-icon-button>
+        <paper-icon-button title="Demografie" class="side" id="acivateBuurtInfo" enabled="{{buurtinfo}}" src="../style/demografie.png" on-click="{{toggleBuurtInfo}}"></paper-icon-button>
+        <paper-icon-button title="Energie" class="side" id="acivateEnergyInfo" enabled="{{energyinfo}}" src="../style/energy.png" on-click="{{toggleEnergyInfo}}"></paper-icon-button>
     </div>
     <paper-icon-button icon="menu" id="navicon" on-click="{{toggleDrawer}}"></paper-icon-button>
     <paper-icon-button id="idicon" icon="{{account.ID==undefined?'social:person-outline':'account-circle'}}" on-click="{{toggleLogin}}"></paper-icon-button>  
