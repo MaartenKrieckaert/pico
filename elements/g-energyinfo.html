@@ -55,8 +55,12 @@ Polymer({
             
          
             if(this.map!=null){
-                if(this.enabled) {            
-                this.map.on('click',this.addPoint,this);
+                if(this.enabled) {    
+                    if(this.activeLayer){
+                      this.layers.splice(this.layers.indexOf(this.activeLayer),1);
+                      delete this.activeLayer;  
+                    }        
+                    this.map.on('click',this.addPoint,this);
                 }
                     else {
                         

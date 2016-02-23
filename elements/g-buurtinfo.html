@@ -55,11 +55,14 @@ Polymer({
          
             if(this.map!=null){
                 if(this.enabled) {            
-                this.map.on('click',this.addPoint,this);
+                    this.map.on('click',this.addPoint,this);
                 }
                     else {
-                        
-                    this.map.off('click',this.addPoint,this);
+                        if(this.activeLayer){
+                          this.layers.splice(this.layers.indexOf(this.activeLayer),1);
+                          delete this.activeLayer;  
+                        }
+                        this.map.off('click',this.addPoint,this);
                 }                
              
             }
