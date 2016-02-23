@@ -67,7 +67,7 @@ Polymer({
     },
     lookup: function(id) {
       if(!id) return false;
-      this.$.geoLookup.url = "https://services.geodan.nl/geosearch/lookup?q="+id;
+      this.$.geoLookup.url = "https://services.geodan.nl/geosearch/lookup?q="+id+'&apikey=d7cd2afb';
       this.$.geoLookup.go();
     },
     stopProp: function(e){

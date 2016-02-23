@@ -200,7 +200,7 @@ paper-icon-button[enabled=true].side {
     })
   
     var map = L.map(this.$.map,{crs:crs, minZoom: 3, maxZoom: 14, fadeAnimation: false});
-    var topo =new L.tileLayer('http://services.geodan.nl/tms/1.0.0/topokaart_EPSG28992/{z}/{x}/{y}.png?layer=topokaart_EPSG28992&uid=d7cd2afb',{
+    var topo =new L.tileLayer('http://services.geodan.nl/tms/1.0.0/topokaart_EPSG28992/{z}/{x}/{y}.png?layer=topokaart_EPSG28992&uid=d7cd2afb&apikey=d7cd2afb',{
        
         attribution: 'Kaart: &copy; <a href="http://maps.geodan.nl">Geodan</a>',
         tms: true

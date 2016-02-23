@@ -122,7 +122,10 @@ Polymer({
     
     showFeatures: function(d) {
         if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).bindPopup(this.createText(d.detail.response));
-            this.activeLayer.options = {noopacity:true,config:{'title':d.detail.response.features[0].properties.gemnaam}};
+            var title = 'Info: ';
+            if(d.detail.response.features[0].properties.buurtnaam !== '') title +=d.detail.response.features[0].properties.buurtnaam;
+            else title += d.detail.response.features[0].properties.gemnaam;
+            this.activeLayer.options = {noopacity:true,config:{'title':title}};
             
             this.layers.push(this.activeLayer);
             var showPopup = function(e) {
