@@ -204,9 +204,9 @@ Polymer({
             })
         }
         if(e[0].addedCount>0) {
-            if(this.layers[e[0].index].options.config.picoInfo.text.length > 10) {
+            if(this.layers[e[0].index].options.config.picoInfo.text.length > 140) {
                 this.layers[e[0].index].options.config.picoInfo.longtext = this.layers[e[0].index].options.config.picoInfo.text;
-                this.layers[e[0].index].options.config.picoInfo.text = this.layers[e[0].index].options.config.picoInfo.text.substr(0,10)+' ...';
+                this.layers[e[0].index].options.config.picoInfo.text = this.layers[e[0].index].options.config.picoInfo.text.substr(0,140)+' ...';
             }
             this.map.addLayer(this.layers[e[0].index])
              this.layers[e[0].index].on('loading',function(f){
@@ -247,11 +247,8 @@ Polymer({
         }
     },
 
-    leesMeer: function(e,b,c){
-        console.log(this.moreInfo);
-        this.moreInfo = ' ';
-        var layer = c.templateInstance.model.l;
-        console.log(this.moreInfo);
+    leesMeer: function(e,b,c){                
+        var layer = c.templateInstance.model.l;        
         this.moreInfo = layer.options.config.picoInfo.longtext;        
     },
     setOpacity: function(e,b,c){
