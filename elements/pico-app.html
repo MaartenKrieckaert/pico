@@ -152,15 +152,18 @@ paper-icon-button[enabled=true].side {
       <span class=" indent"><a href="./"><img src="../style/pico.png"></a></span>
     </core-toolbar>
     <g-filtermanager   map="{{map}}" filters="{{filters}}"></g-filtermanager>
-    <g-layermanager   layers="{{layers}}" map="{{map}}"></g-layermanager>
+    <g-layermanager   layers="{{layers}}" map="{{map}}" moreInfo="{{moreInfo}}"></g-layermanager>
   </core-header-panel>
 </core-drawer-panel>
-
+<paper-action-dialog id="moreInfoDialog" transition="core-transition-left" on-core-overlay-close-completed="{{resetMoreInfo}}">
+ <span>{{moreInfo}}</span>
+ <paper-button affirmative  autofocus>Sluit</paper-button>
+</paper-action-dialog>
 <paper-action-dialog id="login" transition="core-transition-right">
   <g-cas account="{{account}}"></g-cas>
          <template if="{{account.ID!=undefined}}"> <paper-button affirmative  style="color:red"><A href="{{logoutUrl}}">Uitloggen</a></paper-button></template><paper-button affirmative  autofocus>Sluit</paper-button>
 </paper-action-dialog>
-<paper-action-dialog  class="scrolling"  id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">
+<paper-action-dialog  class="scrolling"  id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">hier
   <g-layercatalogus  id="layerConfig" mapType="leaflet" activeLayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
 <paper-button affirmative  autofocus>Sluit</paper-button>
 </paper-action-dialog>
@@ -171,7 +174,7 @@ paper-icon-button[enabled=true].side {
 <script>
  Polymer({
     buurtinfo: false,
-    addLayer: false,
+    addLayer: false,  
     toggleDrawer: function(e) {
         
         this.$.drawerPanel.togglePanel()
@@ -184,11 +187,20 @@ paper-icon-button[enabled=true].side {
         this.buurtinfo = false;
         this.energyinfo=this.energyinfo?false:true;       
     },
+    moreInfoChanged: function(){
+        if(this.moreInfo.length>0) {
+            this.$.moreInfoDialog.open();
+        }
+    },
+    resetMoreInfo: function() {
+        this.moreInfo = '';
+    },
     ready: function() {
         // Initialize the instance's "list" property to empty array.
         this.layers = this.layers || [];
         this.filters = this.filters || [];
         this.account = this.account || {};
+        this.moreInfo = this.moreInfo || '';
         this.logoutUrl = "https://services.geodan.nl/geocas/cas-logout.jsp?forwardUrl="+ window.location.href;
        
     
