@@ -204,7 +204,7 @@ Polymer({
             })
         }
         if(e[0].addedCount>0) {
-            if(this.layers[e[0].index].options.config.picoInfo.text.length > 140) {
+            if(this.layers[e[0].index].options.config.picoInfo && this.layers[e[0].index].options.config.picoInfo.text.length > 140) {
                 this.layers[e[0].index].options.config.picoInfo.longtext = this.layers[e[0].index].options.config.picoInfo.text;
                 this.layers[e[0].index].options.config.picoInfo.text = this.layers[e[0].index].options.config.picoInfo.text.substr(0,140)+' ...';
             }
