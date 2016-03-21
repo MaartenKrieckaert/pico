@@ -8,8 +8,9 @@
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<!--
 <link rel="import" href="../bower_components/paper-interval-slider/paper-interval-slider.html">
-
+-->
   <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <dom-module id="g-filtermanager">
   <style>
@@ -57,7 +58,7 @@ paper-checkbox::shadow #checkbox {
 }
 paper-interval-slider::shadow .knobInner {
     background: white;
-    
+
 }
 .uit {
     opacity: 0.5;
@@ -74,7 +75,7 @@ paper-interval-slider::shadow .knobInner {
 <iron-collapse>
 <template is="dom-repeat" items="{{filters}}" as="l" id="filterList">
    <div class="layer">
-   
+
         <paper-item undefined="{{l.options.config.title}}" title="{{l.options.config.title}}" on-click="toggle">
             <paper-ripple fit=""></paper-ripple><span flex=""></span><paper-spinner class="white" active="{{l.loading}}"></paper-spinner><paper-checkbox checked="{{l.options.config.isFilter}}" on-click="stop" on-core-change="toggleOpac"></paper-checkbox>
         </paper-item>
@@ -223,7 +224,7 @@ paper-interval-slider::shadow .knobInner {
              title: 'Wijkniveau',
              visible: true
          });
-          
+
          var wms_buurt = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
              layers: 'cbs_buurten_2011_dit',
              format: 'image/png',
@@ -231,8 +232,8 @@ paper-interval-slider::shadow .knobInner {
              title: 'Buurtniveau',
              visible: true
          });
-         
-         
+
+
          var wms_blok = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
              layers: 'pc6_energieverbruik_alliander',
              format: 'image/png',
@@ -240,7 +241,7 @@ paper-interval-slider::shadow .knobInner {
              title: 'Blokniveau',
              visible: true
          });
-         
+
          var wms_pand = L.tileLayer.wms("http://model.geodan.nl/geoserver/pico/wms", {
              layers: 'gebouwen',
              format: 'image/png',

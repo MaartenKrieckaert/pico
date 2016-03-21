@@ -3,7 +3,9 @@
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
+<!--
 <link rel="import" href="../bower_components/core-label/core-label.html">
+-->
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
@@ -66,7 +68,7 @@ paper-dropdown-menu,paper-dropdown {
     <template is="dom-repeat" items="{{catalogus}}" as="layer" id="layerList">
     <div class="group"><paper-item class="groupTitle" undefined="{{_computeLabel(layer)}}" on-click="toggle"><paper-ripple fit=""></paper-ripple></paper-item>
         <iron-collapse opened="{{layer.opened}}">
-            <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">    
+            <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">
             <div class="subGroup"><paper-item class="subGroupTitle" undefined="{{sub.subname}}" on-click="toggle"><paper-ripple fit=""></paper-ripple></paper-item>
                 <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
                 <template is="dom-repeat" items="{{sub.layers}}" as="l">
@@ -224,7 +226,7 @@ paper-dropdown-menu,paper-dropdown {
                   }]
               });
             } else {
-              //layer isn't in a subgroup: add layer to group 
+              //layer isn't in a subgroup: add layer to group
               a.push({
                 group: l.options.config.groupName,
                 opened: open,
@@ -249,7 +251,7 @@ paper-dropdown-menu,paper-dropdown {
                 sub[0].layers.push(l);
               }
             } else {
-              //layer isn't in a subgroup: add layer to group 
+              //layer isn't in a subgroup: add layer to group
               group[0].layers.push(l);
             }
           }
