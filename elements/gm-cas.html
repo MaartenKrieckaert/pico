@@ -49,7 +49,6 @@ Polymer({
 	},
 	ready: function() {
 		this.host = window.location.href.split('?')[0];
-		console.log(this.host)
   },
   handleResponse: function(d,e) {
     if(d.detail&&d.detail.xhr&&d.detail.xhr.response) {

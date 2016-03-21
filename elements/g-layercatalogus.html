@@ -36,15 +36,15 @@
     min-width: 350px;
     margin-right:-20px;
 }
-.group core-collapse {
+.group iron-collapse {
     padding-left:2px;
     padding-right: 10px;
 }
-core-item {
+iron-item {
     cursor:pointer;
     word-wrap: normal
 }
-core-collapse {
+iron-collapse {
     background: rgba(225,225,230,0.4);
     -webkit-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
     -moz-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
@@ -58,8 +58,14 @@ paper-dropdown-menu,paper-dropdown {
 }
 </style>
   <template>
-<iron-ajax id="getConfig" auto="" url="../config.json" handeas="json" on-core-response="initialConfig"></iron-ajax>
-<iron-ajax id="getConfig" auto="" url="{{url}}" handeas="json" on-core-response="handleResponse" withcredentials="true"></iron-ajax>
+<iron-ajax id="getConfig" auto="" url="../config.json" handeas="json" on-response="initialConfig"></iron-ajax>
+<iron-ajax
+  auto
+  url="{{url}}"
+  verbose="true"
+  with-credentials="true"
+  on-response="handleResponse"
+  id="getConfig"></iron-ajax>
 <template is="dom-if" if="{{_computeIf(account, undefined)}}">
     <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
@@ -126,7 +132,9 @@ paper-dropdown-menu,paper-dropdown {
       },
       //The response from the document service will be parsed here.
       handleResponse: function (d) {
-        var response = JSON.parse(d.detail.response);
+      if(d.detail&&d.detail.xhr&&d.detail.xhr.response) {
+        var response = d.detail.xhr.response;
+      
         if (response.constructor === Array) {
           //just a list of configs
           this.configs = response;
@@ -185,6 +193,7 @@ paper-dropdown-menu,paper-dropdown {
           }
           this.parseLayers(this.layers);
         }
+      }
       },
       //Create the layercatalogus and set the filters and activeLayers (visible in the g-layermanager)
       //attributes that need to change when loading or changing a config should be set here
