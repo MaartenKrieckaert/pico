@@ -69,22 +69,22 @@ paper-dropdown-menu,paper-dropdown {
 <template is="dom-if" if="{{_computeIf(account, undefined)}}">
     <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
-<template is="dom-if" if="{{_computeIf2(account, undefined)}}">
+<template is="dom-if" if="{{_computeIf2(account)}}">
     <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
     <template is="dom-repeat" items="{{catalogus}}" as="layer" id="layerList">
-    <div class="group"><paper-item class="groupTitle" undefined="{{_computeLabel(layer)}}" on-click="toggle"><paper-ripple fit=""></paper-ripple></paper-item>
+    <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(layer)}}<paper-ripple fit=""></paper-ripple></paper-item>
         <iron-collapse opened="{{layer.opened}}">
             <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">
-            <div class="subGroup"><paper-item class="subGroupTitle" undefined="{{sub.subname}}" on-click="toggle"><paper-ripple fit=""></paper-ripple></paper-item>
+            <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle"><paper-ripple fit="">{{sub.subname}}</paper-ripple></paper-item>
                 <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
                 <template is="dom-repeat" items="{{sub.layers}}" as="l">
-               <paper-item class="layer" vis="{{l.options.visibility}}" undefined="{{l.options.config.title}}" on-click="{{_computeIcon(l)}}"><paper-ripple fit=""></paper-ripple></paper-item>
+               <paper-item class="layer" vis="{{l.options.visibility}}" on-click="{{_computeIcon(l)}}">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
                 </template>
                 </iron-collapse>
             </div>
             </template>
             <template is="dom-repeat" items="{{layer.layers}}" as="l">
-                 <paper-item class="layer" vis="{{l.options.visibility}}" undefined="{{l.options.config.title}}" on-click="toggleLayer"><paper-ripple fit=""></paper-ripple></paper-item>
+                 <paper-item class="layer" vis="{{l.options.visibility}}" on-click="toggleLayer">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
             </template>
         </iron-collapse>
     </div>
@@ -133,8 +133,7 @@ paper-dropdown-menu,paper-dropdown {
       //The response from the document service will be parsed here.
       handleResponse: function (d) {
       if(d.detail&&d.detail.xhr&&d.detail.xhr.response) {
-        var response = d.detail.xhr.response;
-      
+        var response = d.detail.xhr.response;      
         if (response.constructor === Array) {
           //just a list of configs
           this.configs = response;
@@ -269,8 +268,8 @@ paper-dropdown-menu,paper-dropdown {
       },
       //open/close core-collapses
       toggle: function (e) {
-        e.target.parentElement.icon = e.target.parentElement.icon == 'arrow-drop-down' ? 'arrow-drop-up' : 'arrow-drop-down';
-        e.target.parentElement.nextElementSibling.toggle();
+        e.target.icon = e.target.icon == 'arrow-drop-down' ? 'arrow-drop-up' : 'arrow-drop-down';
+        e.target.nextElementSibling.toggle();
       },
       //workaround for nested core-collapses
       resizeGroup: function (e) {
@@ -280,8 +279,8 @@ paper-dropdown-menu,paper-dropdown {
         }, 330);
       },
       //add/remove layer to the activeLayers list
-      toggleLayer: function (e, b, c) {
-        var layer = c.templateInstance.model.l;
+      toggleLayer: function (e) {
+        var layer = e.model.l;
         //replace undefined with false
         layer.options.visibility = layer.options.visibility ? false : true;
         layer.options.visibility ? this.activeLayers.push(layer) : this.activeLayers.splice(this.activeLayers.indexOf(layer), 1);
@@ -303,7 +302,7 @@ paper-dropdown-menu,paper-dropdown {
       _computeIf2: function (account, undefined) {
         return account.ID != undefined;
       },
-      _computeLabel: function (layer) {
+      _computeLabel: function (layer) {        
         return layer.group == null ? 'Generiek' : layer.group;
       },
       _computeIcon: function (l) {
