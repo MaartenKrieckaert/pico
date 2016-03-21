@@ -22,7 +22,8 @@
     "proj4": "https://github.com/proj4js/proj4js.git",
     "Proj4Leaflet": "proj4leaflet#~0.7.2",
     "Chart.js": "chartjs#^1.0.2",
-    
-    "leaflet-omnivore": "^0.3.2"
+    "leaflet-omnivore": "^0.3.2",
+    "iron-elements": "PolymerElements/iron-elements#^1.0.8",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.7"
   }
 }
