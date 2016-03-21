@@ -7,21 +7,21 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="./g-layermanager.html"> 
-<link rel="import" href="./g-filtermanager.html"> 
+<link rel="import" href="./g-layermanager.html">
+<link rel="import" href="./g-filtermanager.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="./g-cas.html"> 
-<link rel="import" href="./g-buurtinfo.html"> 
-<link rel="import" href="./g-energyinfo.html"> 
-<link rel="import" href="./g-getfeatureinfo.html"> 
-<link rel="import" href="./g-layercatalogus.html"> --&gt;
-<link rel="import" href="./g-geosearch.html"> --&gt;
+<link rel="import" href="./g-cas.html">
+<link rel="import" href="./g-buurtinfo.html">
+<link rel="import" href="./g-energyinfo.html">
+<link rel="import" href="./g-getfeatureinfo.html">
+<link rel="import" href="./g-layercatalogus.html">
+<link rel="import" href="./g-geosearch.html">
 
-<script src="../bower_components/leaflet/dist/leaflet-src.js"></script>     
+<script src="../bower_components/leaflet/dist/leaflet-src.js"></script>
 <script src="../bower_components/leaflet-hash/leaflet-hash.js"></script>
 <script src="../bower_components/proj4/dist/proj4.js"></script>
 <script src="../bower_components/Proj4Leaflet/src/proj4leaflet.js"></script>
- 
+
 <dom-module id="pico-app">
   <link rel="import" no-shim="" type="css" href="../bower_components/leaflet/dist/leaflet.css">
   <style>
@@ -38,7 +38,7 @@
     overflow: hidden;
     position: absolute;
          box-sizing: border-box;
-      
+
 }
 body {
     background-color: white;
@@ -70,7 +70,7 @@ g-geosearch {
     position: absolute;
     left: 80px;
 
- 
+
  padding-left:4px;
  border-radius: 5px;
 }
@@ -120,7 +120,7 @@ paper-icon-button[enabled=true].side {
     color:white;
 }
 #map {
-  
+
   cursor: crosshair;
 }
 
@@ -135,7 +135,7 @@ paper-icon-button[enabled=true].side {
     <paper-toolbar class="medium-tall">
     </paper-toolbar>
      <div id="container">
-       
+
        <div id="map" info="{{_computeInfo(buurtinfo, energyinfo)}}"><g-geosearch map="{{map}}"></g-geosearch><div id="button-bar"><paper-button id="lufo">luchtfoto</paper-button><paper-button raised="" id="topo">topografie</paper-button></div></div>
 
     </div>
@@ -145,7 +145,7 @@ paper-icon-button[enabled=true].side {
         <paper-icon-button title="Energie" class="side" id="acivateEnergyInfo" enabled="{{energyinfo}}" src="../style/energy.png" on-click="toggleEnergyInfo"></paper-icon-button>
     </div>
     <paper-icon-button icon="menu" id="navicon" on-click="toggleDrawer"></paper-icon-button>
-    <paper-icon-button id="idicon" icon="{{_computeIcon(account, undefined)}}" on-click="toggleLogin"></paper-icon-button>  
+    <paper-icon-button id="idicon" icon="{{_computeIcon(account, undefined)}}" on-click="toggleLogin"></paper-icon-button>
   </paper-header-panel>
   <paper-header-panel drawer="" style="background:white;z-index:1">
     <paper-toolbar id="navheader" class="medium-tall">
@@ -155,18 +155,18 @@ paper-icon-button[enabled=true].side {
     <g-layermanager layers="{{layers}}" map="{{map}}" moreinfo="{{moreInfo}}"></g-layermanager>
   </paper-header-panel>
 </paper-drawer-panel>
-<paper-action-dialog id="moreInfoDialog" transition="core-transition-left" on-core-overlay-close-completed="resetMoreInfo">
+<paper-dialog id="moreInfoDialog" transition="core-transition-left" on-core-overlay-close-completed="resetMoreInfo">
  <span>{{moreInfo}}</span>
  <paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
-<paper-action-dialog id="login" transition="core-transition-right">
+</paper-dialog>
+<paper-dialog id="login" transition="core-transition-right">
   <g-cas account="{{account}}"></g-cas>
          <template is="dom-if" if="{{_computeIf(account, undefined)}}"> <paper-button affirmative="" style="color:red"><a href$="{{logoutUrl}}">Uitloggen</a></paper-button></template><paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
-<paper-action-dialog class="scrolling" id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">hier
+</paper-dialog>
+<paper-dialog class="scrolling" id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">hier
   <g-layercatalogus id="layerConfig" maptype="leaflet" activelayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
 <paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
+</paper-dialog>
 <g-buurtinfo enabled="{{buurtinfo}}" layers="{{layers}}" map="{{map}}"></g-buurtinfo>
 <g-energyinfo enabled="{{energyinfo}}" layers="{{layers}}" map="{{map}}"></g-energyinfo>
 <g-getfeatureinfo enabled="{{_computeEnabled(buurtinfo, energyinfo)}}" activelayers="{{layers}}" map="{{map}}"></g-getfeatureinfo>

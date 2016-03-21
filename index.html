@@ -4,18 +4,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>PICO</title>
-        <!-- 1. Load webcomponents.min.js for polyfill support. -->
-    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>    
-    
-   <link rel="import" href="elements/pico-app.html"> 
-<link href="//fonts.googleapis.com/css?family=RobotoDraft:300,400,500|Source+Code+Pro:400,500,700" rel="stylesheet">    
+
+    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
+
+   <link rel="import" href="elements/pico-app.html">
+<link href="//fonts.googleapis.com/css?family=RobotoDraft:300,400,500|Source+Code+Pro:400,500,700" rel="stylesheet">
 <style>
 * {
 font-size:14px;font-family:"RobotoDraft",Helvetica,Arial,sans-serif;font-weight:300;line-height:20px
 }
 html /deep/  #login {
     right: 6px;
-     
+
 }
 
  body.leaflet-dragging   /deep/  #map {
@@ -32,7 +32,7 @@ html /deep/   #layerlist {
 html /deep/   #featureInfo {
  left: 6px;
  top: 64px;
- 
+
 }
 html /deep/ core-icon {
   min-width: 24px;
@@ -58,8 +58,21 @@ html /deep/ core-item {
     }
   </style>
   <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html">
+  <style is="custom-style">
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
+    [layout] {
+      @apply(--layout);
+    }
+    [layout][vertical] {
+      @apply(--layout-vertical);
+    }
+    [fullbleed] {
+      margin: 0;
+      height:100vh;
+    }
+  </style>
 </head>
 <body fullbleed="" layout="" vertical="">
 <pico-app></pico-app>
-
-

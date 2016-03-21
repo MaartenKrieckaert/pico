@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
-<!--link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html"-->
+<!-- TODO
+<link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html">
+-->
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
@@ -34,7 +36,7 @@ core-collapse {
     margin-left: 1px;
     margin-right: 1px;
 }
-.legendImg, .transparent {    
+.legendImg, .transparent {
     padding: 5px 5px 5px 15px;
 }
 .layerRest {
@@ -114,8 +116,8 @@ core-collapse {
 <div class="container">
 <template is="dom-repeat" items="{{layersReversed}}" as="l" id="layerList">
     <div draggable="true" if="{{l.options.visibility}}" on-dragstart="dragStart" on-dragover="allowDrop" on-dragenter="dragenter" on-dragleave="dragleave" on-dragend="dragend" on-drop="dragStop" class$="{{_computeClass(l)}}">
-          
-   
+
+
         <paper-item undefined="{{l.options.config.title}}" title="{{l.options.config.title}}" on-click="toggle">
             <paper-ripple fit=""></paper-ripple><span flex=""></span><template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template>
         </paper-item>
@@ -132,9 +134,9 @@ core-collapse {
                     <img draggable="false" src="{{l.options.config.legendUrl}}">
                 </div>
                 </template>
-                
+
                 <div class="layerRest"><span class="removeLayer" on-click="toggleLayer">verwijder laag</span><template is="dom-if" if="{{_computeIf4(l, undefined)}}"><span on-click="toggleInfo" class="infoLayer">info</span></template></div>
-               
+
                  <iron-collapse class="picoinfo">
                     <div class="picoinfotext">{{l.options.config.picoInfo.text}}</div>
                     <template is="dom-if" if="{{l.options.config.picoInfo.url}}"><div class="picoinfourl"> <a target="_blank" href$="{{l.options.config.picoInfo.url}}">meer info</a></div></template>
@@ -148,7 +150,7 @@ core-collapse {
 <paper-action-dialog id="meerInfoVenster" style="position:absolute;display:none;background: white;padding: 10px;top:200px;">
   <div id="meerInfoText">
   </div>
-  <div class="buttons">    
+  <div class="buttons">
     <paper-button affirmative="" autofocus="">Sluit</paper-button>
       </div>
 </paper-action-dialog>

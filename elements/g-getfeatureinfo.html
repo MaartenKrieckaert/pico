@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
   <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <dom-module id="g-getfeatureinfo">
@@ -36,7 +36,7 @@
        <template is="dom-if" if="{{_computeIf4(field)}}">
        nvt
        </template>
-       
+
        </p>
      </template>
     </template>
@@ -55,7 +55,7 @@
    </p>
   </template>
   </template-->
- 
+
   </div>
   <paper-button affirmative="" autofocus="">Sluit</paper-button>
 </paper-action-dialog>
@@ -100,9 +100,9 @@
          self.activelayers.forEach(function(layer) {
             if(layer.wmsParams !== undefined) {
                 sources[layer._url]?sources[layer._url].layers.push(layer.wmsParams.layers):sources[layer._url]={layers:[layer.wmsParams.layers]};
-                
+
             }
-         });  
+         });
          var requests = [];
          for(key in sources) {
             var source = sources[key];
@@ -110,7 +110,7 @@
               request: 'GetFeatureInfo',
               service: 'WMS',
               srs: 'EPSG:4326',
-              version: '1.1.1',                    
+              version: '1.1.1',
               bbox: self.map.getBounds().toBBoxString(),
               height: size.y,
               width: size.x,
@@ -154,12 +154,12 @@
         if (this.map != null) {
           if (this.enabled) {
             if (!this.on) {
-         //     this.on = true;
-         //     this.map.on('click', this.getFeatureInfo, this);
+              //this.on = true;
+              //this.map.on('click', this.getFeatureInfo, this);
             }
           } else {
-         //   this.on = false;
-          //  this.map.off('click', this.getFeatureInfo, this);
+            //this.on = false;
+            //this.map.off('click', this.getFeatureInfo, this);
           }
         }
       },
