@@ -51,11 +51,11 @@ body {
     height: 100%;
     background: #eeeeec;
 }
-core-drawer-panel:not([narrow]) #navicon {
+iron-drawer-panel:not([narrow]) #navicon {
     display: none;
 }
 
-core-drawer-panel[narrow] #navheader {
+iron-drawer-panel[narrow] #navheader {
     display: none;
 }
 
@@ -78,7 +78,7 @@ g-geosearch {
  border-radius: 5px;
 }
 
-core-toolbar, paper-button[raised] {
+iron-toolbar, paper-button[raised] {
     background: #3F51B5;
     color: white;
 }
@@ -290,6 +290,11 @@ paper-icon-button[enabled=true].side {
           Polymer.dom(this.previousElementSibling).removeAttribute('raised');
         });
         this.map = map;
+       
+      },
+      attached: function(){        
+        this.map.invalidateSize()
+        
       },
       toggleAddLayer: function () {
         //this.addLayer=this.addLayer?false:true;
