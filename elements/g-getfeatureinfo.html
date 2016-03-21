@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-    dialog.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
   <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <dom-module id="g-getfeatureinfo">
@@ -154,12 +154,12 @@
         if (this.map != null) {
           if (this.enabled) {
             if (!this.on) {
-              this.on = true;
-              this.map.on('click', this.getFeatureInfo, this);
+              //this.on = true;
+              //this.map.on('click', this.getFeatureInfo, this);
             }
           } else {
-            this.on = false;
-            this.map.off('click', this.getFeatureInfo, this);
+            //this.on = false;
+            //this.map.off('click', this.getFeatureInfo, this);
           }
         }
       },
