@@ -1,46 +1,60 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
-<polymer-element name="g-cas" attributes="account">
-<template>
-<style>
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<dom-module id="g-cas">
+  <style>
 .loginField {
     min-height: 60px;
 }
 </style>
-<core-ajax method="get" id="ajaxRequest"
-   auto
-   url="{{casurl}}/geocas/whoami.jsp"  
-   withCredentials=true 
-   on-core-complete="{{handleResponse}}"></core-ajax>
-    <template if="{{account.ID==undefined}}">
+  <template>
+<iron-ajax method="get" id="ajaxRequest" auto="" url="{{_computeUrl(casurl)}}" withcredentials="true" on-core-complete="handleResponse"></iron-ajax>
+    <template is="dom-if" if="{{_computeIf(account, undefined)}}">
         <div class="loginField">
             U bent momenteel niet ingelogd.
-            <br/>
-            <paper-button><a href="{{casurl}}/cas/login?service={{host}}">Inloggen</a></paper-button>
+            <br>
+            <paper-button><a href$="{{_computeHref(casurl, host)}}">Inloggen</a></paper-button>
         </div>
     </template>
-    <template if="{{account.ID!=undefined}}">
+    <template is="dom-if" if="{{_computeIf2(account, undefined)}}">
         <div class="loginField">
-            Welkom {{account.FirstName}} {{account.LastName}}!
-            <br/>
+            Welkom <span>{{account.FirstName}}</span> <span>{{account.LastName}}</span>!
+            <br>
             U bent ingelogd als lid van <strong>{{account.Organisation}}</strong>
         </div>
     </template>
 </template>
-<script>
-
-Polymer({
-  casurl: 'https://services.geodan.nl',
-  ready: function() {
-    this.account = this.account || {};    
-    this.host = window.location.href.split('?')[0];
-  },
-  handleResponse: function(d) {
-    if(d.detail&&d.detail.xhr&&d.detail.xhr.response&&d.detail.xhr.response.indexOf('{')==0) {
-        this.account = JSON.parse(d.detail.xhr.response);
-    }    
-  }
-  });
-</script>
-</polymer-element>
+  <script>
+    Polymer({
+      is: 'g-cas',
+      properties: {
+        account: { notify: true },
+        casurl: {
+          type: String,
+          value: 'https://services.geodan.nl'
+        }
+      },
+      ready: function () {
+        this.account = this.account || {};
+        this.host = window.location.href.split('?')[0];
+      },
+      handleResponse: function (d) {
+        if (d.detail && d.detail.xhr && d.detail.xhr.response && d.detail.xhr.response.indexOf('{') == 0) {
+          this.account = JSON.parse(d.detail.xhr.response);
+        }
+      },
+      _computeUrl: function (casurl) {
+        return casurl + '/geocas/whoami.jsp';
+      },
+      _computeIf: function (account, undefined) {
+        return account.ID == undefined;
+      },
+      _computeIf2: function (account, undefined) {
+        return account.ID != undefined;
+      },
+      _computeHref: function (casurl, host) {
+        return casurl + '/cas/login?service=' + host;
+      }
+    });
+  </script>
+</dom-module>

@@ -1,15 +1,27 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/core-field/core-field.html">
-<link rel="import" href="../bower_components/core-menu/core-menu.html">
-<link rel="import" href="../bower_components/core-list/core-list.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 
 <script src="../bower_components/leaflet-omnivore/leaflet-omnivore.min.js"></script>
 
-<polymer-element name="g-geosearch" attributes="map">
-<template>
-<style>
+  <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<dom-module id="g-geosearch">
+  <style>
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
+    [fit] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
+  <style>
 
 paper-item {
     z-index: 1000;
@@ -22,30 +34,19 @@ paper-item[selected=true] {
    border: solid 1px #3F51B5;
 }
 </style>
-<core-ajax id="geoSuggest"
-    
-    
-    handeAs="json"
-    on-core-response="{{handleSuggest}}"
-    withCredentials=true
-></core-ajax>
-<core-ajax id="geoLookup"
-    
-    
-    handeAs="json"
-    on-core-response="{{handleLookup}}"
-    withCredentials=true
-></core-ajax>
-<core-field on-click="{{stopProp}}">
-<paper-input id="zoekVeld" label="zoek een locatie" on-keyup="{{inputChange}}"></paper-input>
-<core-icon icon="search" style="cursor:pointer" on-click="{{lookupFirst}}" ><paper-ripple fit></paper-ripple></core-icon>
+  <template>
+<iron-ajax id="geoSuggest" handeas="json" on-core-response="handleSuggest" withcredentials="true"></iron-ajax>
+<iron-ajax id="geoLookup" handeas="json" on-core-response="handleLookup" withcredentials="true"></iron-ajax>
+<core-field on-click="stopProp">
+<paper-input id="zoekVeld" label="zoek een locatie" on-keyup="inputChange"></paper-input>
+<iron-icon icon="search" style="cursor:pointer" on-click="lookupFirst"><paper-ripple fit=""></paper-ripple></iron-icon>
 </core-field>
 
-<paper-shadow>
-<template repeat="{{model in suggestions}}">
-<paper-item selected="{{model.selected}}" on-click="{{locationSelected}}" id="{{model.id}}" label="{{model.displayname}}">{{model.displayname}}</paper-item>
+<paper-material>
+<template is="dom-repeat" items="{{suggestions}}" as="model">
+<paper-item selected="{{model.selected}}" on-click="locationSelected" id="{{model.id}}" label="{{model.displayname}}">{{model.displayname}}</paper-item>
 </template>
-</paper-shadow>
+</paper-material>
 
 <!--core-menu>
 <template repeat="{{suggest in suggestions}}">
@@ -53,75 +54,85 @@ paper-item[selected=true] {
 </template>
 </core-menu-->
 </template>
-<script>
-
-Polymer({
-    locationSelected: function(a,b,c) {
-      a.stopPropagation();
-      this.lookup(c.id);
-    },
-    lookupFirst: function(){
+  <script>
+    Polymer({
+      is: 'g-geosearch',
+      properties: { map: { notify: true } },
+      locationSelected: function (a, b, c) {
+        a.stopPropagation();
+        this.lookup(c.id);
+      },
+      lookupFirst: function () {
         var id;
-        if(this.suggestions.length>0) id = this.suggestions[this.iselected].id
+        if (this.suggestions.length > 0)
+          id = this.suggestions[this.iselected].id;
         this.lookup(id);
-    },
-    lookup: function(id) {
-      if(!id) return false;
-      this.$.geoLookup.url = "https://services.geodan.nl/geosearch/lookup?q="+id+'&apikey=d7cd2afb';
-      this.$.geoLookup.go();
-    },
-    stopProp: function(e){
-        e.stopPropagation()
-    },
-    inputChange: function(e,b,c) {
-        if(c.value!=''||c.value!==undefined){
-         if (e.keyCode == 13){ //enter
-              //TODO: fix error
-              this.lookup(this.suggestions[this.iselected].id);     	 	
-     	 }
-     	 else if (e.keyCode == 40){ //down arrow
-     	 	 if(this.iselected < this.suggestions.length-1) this.iselected++;
-     	 	  this.suggestions.forEach(function(s){s.selected=false});
-     	 	 this.suggestions[this.iselected].selected=true;
-             this.$.zoekVeld.value=this.suggestions[this.iselected].displayname;
-     	 }
-     	 else if (e.keyCode == 38){ //up arrow
-            if(this.iselected > 0)  this.iselected--;
-             this.suggestions.forEach(function(s){s.selected=false});
-     	 	 this.suggestions[this.iselected].selected=true;
-             this.$.zoekVeld.value=this.suggestions[this.iselected].displayname;
-     	 }
-         else {
-         this.iselected = 0;
-        this.$.geoSuggest.url = "https://services.geodan.nl/geosearch/suggest?q="+c.value;
-        this.$.geoSuggest.go();
+      },
+      lookup: function (id) {
+        if (!id)
+          return false;
+        this.set('$.geoLookup.url', 'https://services.geodan.nl/geosearch/lookup?q=' + id + '&apikey=d7cd2afb');
+        this.$.geoLookup.go();
+      },
+      stopProp: function (e) {
+        e.stopPropagation();
+      },
+      inputChange: function (e, b, c) {
+        if (c.value != '' || c.value !== undefined) {
+          if (e.keyCode == 13) {
+            //enter
+            //TODO: fix error
+            this.lookup(this.suggestions[this.iselected].id);
+          } else if (e.keyCode == 40) {
+            //down arrow
+            if (this.iselected < this.suggestions.length - 1)
+              this.iselected++;
+            this.suggestions.forEach(function (s) {
+              s.selected = false;
+            });
+            this.set('suggestions' + ('.' + this.iselected) + '.selected', true);
+            this.set('$.zoekVeld.value', this.suggestions[this.iselected].displayname);
+          } else if (e.keyCode == 38) {
+            //up arrow
+            if (this.iselected > 0)
+              this.iselected--;
+            this.suggestions.forEach(function (s) {
+              s.selected = false;
+            });
+            this.set('suggestions' + ('.' + this.iselected) + '.selected', true);
+            this.set('$.zoekVeld.value', this.suggestions[this.iselected].displayname);
+          } else {
+            this.iselected = 0;
+            this.set('$.geoSuggest.url', 'https://services.geodan.nl/geosearch/suggest?q=' + c.value);
+            this.$.geoSuggest.go();
+          }
         }
-        }
-    },
-    handleSuggest:function(d) {
+      },
+      handleSuggest: function (d) {
         var doc = JSON.parse(d.detail.response);
-        this.suggestions = doc.response.docs;  
-        if(this.suggestions.length > 0)
-        this.suggestions[0].selected=true;        
-    },
-    handleLookup:function(d) {
+        this.suggestions = doc.response.docs;
+        if (this.suggestions.length > 0)
+          this.set('suggestions' + ('.' + 0) + '.selected', true);
+      },
+      handleLookup: function (d) {
         var doc = JSON.parse(d.detail.response);
         this.suggestions = [];
-        this.$.zoekVeld.value="";
-        this.map.removeLayer(this.result)
+        this.set('$.zoekVeld.value', '');
+        this.map.removeLayer(this.result);
         this.result = omnivore.wkt.parse(doc.response.docs[0].geom);
         this.result.addTo(this.map);
-        this.result.on('click',function(){this.map.removeLayer(this.result)},this);
+        this.result.on('click', function () {
+          this.map.removeLayer(this.result);
+        }, this);
         this.map.fitBounds(this.result.getBounds());
-        
-    },
-    ready: function(){
+      },
+      ready: function () {
         this.suggestions = [];
-        this.map = this.map || {}; 
+        this.map = this.map || {};
         this.result = {};
         this.iselected = 0;
-        L.Icon.Default.imagePath = 'bower_components/leaflet/dist/images'
-    }
-});
-</script>
-</polymer-element>
+        L.Icon.Default.imagePath = 'bower_components/leaflet/dist/images';
+      }
+    });
+  </script>
+</dom-module>

@@ -1,13 +1,25 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/core-item/core-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
-<polymer-element name="g-layermanager" attributes="layers map layersReversed moreInfo">
-<template>
-<style>
+  <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<dom-module id="g-layermanager">
+  <style>
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
+    [fit] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
+  <style>
 #meerInfoVenster {
     position: fixed;
     top: 10%;
@@ -93,49 +105,43 @@ core-collapse {
   border-radius: 4px;
 }
 </style>
-<style shim-shadowdom>
+  <style shim-shadowdom="">
   paper-spinner.black::shadow .circle {
     border-color: #000;
   }
 </style>
+  <template>
 <div class="container">
-<template id="layerList" repeat="{{l in layersReversed}}">
-    <div class="layer {{l.options.minZoom > l._map._zoom?'zoomin':'visible'}}" draggable="true"
-            if="{{l.options.visibility}}"
-            on-dragstart='{{dragStart}}'  
-            on-dragover="{{allowDrop}}"
-            on-dragenter="{{dragenter}}"
-            on-dragleave="{{dragleave}}"
-            on-dragend="{{dragend}}"
-            on-drop='{{dragStop}}' >
+<template is="dom-repeat" items="{{layersReversed}}" as="l" id="layerList">
+    <div draggable="true" if="{{l.options.visibility}}" on-dragstart="dragStart" on-dragover="allowDrop" on-dragenter="dragenter" on-dragleave="dragleave" on-dragend="dragend" on-drop="dragStop" class$="{{_computeClass(l)}}">
           
    
-        <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
-            <paper-ripple fit></paper-ripple><span flex></span><template if="{{l.options.minZoom <= l._map._zoom}}"><paper-spinner class="black"  active={{l.loading}}></paper-spinner></template>
-        </core-item>
-        <core-collapse>
+        <paper-item undefined="{{l.options.config.title}}" title="{{l.options.config.title}}" on-click="toggle">
+            <paper-ripple fit=""></paper-ripple><span flex=""></span><template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template>
+        </paper-item>
+        <iron-collapse>
             <div class="layerdetails">
-            <template if="{{!l.options.noopacity}}">
-                <p class="transparent">Opaciteit: <span>{{l.options.opacity*100 | roundZero}}%</span></p>
-                <paper-slider min="0" max="1" step="0.01" value='1' immediateValue="{{l.options.opacity}}" on-immediate-value-change="{{setOpacity}}" title="Schuif om de transparantie van de laag in te stellen"></paper-slider>
+            <template is="dom-if" if="{{!l.options.noopacity}}">
+                <p class="transparent">Opaciteit: <span><span>{{_computeExpression1(l)}}</span>%</span></p>
+                <paper-slider min="0" max="1" step="0.01" value="1" immediatevalue="{{l.options.opacity}}" on-immediate-value-change="setOpacity" title="Schuif om de transparantie van de laag in te stellen"></paper-slider>
                 </template>
-                <template if="{{l.options.minZoom > l._map._zoom}}"><div class="legendImg" draggable="false">
-                U dient {{l.options.minZoom - l._map._zoom}}x verder in te zoomen om deze laag te kunnen bekijken</div></template>
-                <template if="{{l.options.config.legendUrl&&l.options.minZoom <= l._map._zoom}}">
+                <template is="dom-if" if="{{_computeIf2(l)}}"><div class="legendImg" draggable="false">
+                U dient <span>{{_computeExpression2(l)}}</span>x verder in te zoomen om deze laag te kunnen bekijken</div></template>
+                <template is="dom-if" if="{{_computeIf3(l)}}">
                 <div class="legendImg" draggable="false">
-                    <img  draggable="false" src="{{l.options.config.legendUrl}}"/>
+                    <img draggable="false" src="{{l.options.config.legendUrl}}">
                 </div>
                 </template>
                 
-                <div class="layerRest"><span class="removeLayer" on-click="{{toggleLayer}}">verwijder laag</span><template if="{{l.options.config.picoInfo!==undefined}}"><span on-click="{{toggleInfo}}"  class="infoLayer">info</span></template></div>
+                <div class="layerRest"><span class="removeLayer" on-click="toggleLayer">verwijder laag</span><template is="dom-if" if="{{_computeIf4(l, undefined)}}"><span on-click="toggleInfo" class="infoLayer">info</span></template></div>
                
-                 <core-collapse class="picoinfo">
+                 <iron-collapse class="picoinfo">
                     <div class="picoinfotext">{{l.options.config.picoInfo.text}}</div>
-                    <template if="{{l.options.config.picoInfo.url}}"><div class="picoinfourl"> <a href="{{l.options.config.picoInfo.url}}" target="_blank">meer info</a></div></template>
-                    <template if="{{l.options.config.picoInfo.longtext}}"><div class="picomeerinfo"  on-click="{{leesMeer}}">lees meer</div></template>
-                  </core-collapse>
+                    <template is="dom-if" if="{{l.options.config.picoInfo.url}}"><div class="picoinfourl"> <a target="_blank" href$="{{l.options.config.picoInfo.url}}">meer info</a></div></template>
+                    <template is="dom-if" if="{{l.options.config.picoInfo.longtext}}"><div class="picomeerinfo" on-click="leesMeer">lees meer</div></template>
+                  </iron-collapse>
             </div>
-        </core-collapse>
+        </iron-collapse>
     </div>
 </template>
 </div>
@@ -143,188 +149,224 @@ core-collapse {
   <div id="meerInfoText">
   </div>
   <div class="buttons">    
-    <paper-button affirmative  autofocus>Sluit</paper-button>
+    <paper-button affirmative="" autofocus="">Sluit</paper-button>
       </div>
 </paper-action-dialog>
 </template>
-
-<script>
-//Fancy function to easily move items in an array
-//as of: http://stackoverflow.com/questions/5306680/move-an-array-element-from-one-array-position-to-another/
-Array.prototype.move = function (old_index, new_index) {
-    while (old_index < 0) {
+  <script>
+    //Fancy function to easily move items in an array
+    //as of: http://stackoverflow.com/questions/5306680/move-an-array-element-from-one-array-position-to-another/
+    Array.prototype.move = function (old_index, new_index) {
+      while (old_index < 0) {
         old_index += this.length;
-    }
-    while (new_index < 0) {
+      }
+      while (new_index < 0) {
         new_index += this.length;
-    }
-    if (new_index >= this.length) {
+      }
+      if (new_index >= this.length) {
         var k = new_index - this.length;
-        while ((k--) + 1) {
-            this.push(undefined);
+        while (k-- + 1) {
+          this.push(undefined);
         }
-    }
-    this.splice(new_index, 0, this.splice(old_index, 1)[0]);   
-};
-Polymer({    
-    //filter to remove decimals
-    roundZero: function(value) {
+      }
+      this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+    };
+    Polymer({
+      is: 'g-layermanager',
+      properties: {
+        draglayer: { value: null },
+        layers: {
+          notify: true,
+          observer: 'layersChanged'
+        },
+        layersReversed: { notify: true },
+        map: { notify: true },
+        moreInfo: { notify: true }
+      },
+      //filter to remove decimals
+      roundZero: function (value) {
         return Math.round(value);
-    },
-    hasClass: function(classes, c) {
+      },
+      hasClass: function (classes, c) {
         var classlist = classes.split(' ');
-        return classlist.reduce(function(a,b){if(b.toLowerCase()==c.toLowerCase()){return a = true;}return a},false);
-    },
-    removeClass: function(classes, c) {
-         var classlist = classes.split(' ');
-         return classlist.reduce(function(a,b){if(b!=c){a=a+b+' '}return a},'')
-    },
-    addClass: function(classes,c) {
-        var classlist = this.removeClass(classes,c);
-        return classlist+=c;
-    },
-    draglayer: null,
-    layersChanged: function(e) {
-        if(!e) return false;
-        if( e.length == 0) {
-        if(this.layers.length == 0)return false;
-        }
-        else {
-        if(this.layers.length ==0) {
+        return classlist.reduce(function (a, b) {
+          if (b.toLowerCase() == c.toLowerCase()) {
+            return a = true;
+          }
+          return a;
+        }, false);
+      },
+      removeClass: function (classes, c) {
+        var classlist = classes.split(' ');
+        return classlist.reduce(function (a, b) {
+          if (b != c) {
+            a = a + b + ' ';
+          }
+          return a;
+        }, '');
+      },
+      addClass: function (classes, c) {
+        var classlist = this.removeClass(classes, c);
+        return classlist += c;
+      },
+      layersChanged: function (_, e) {
+        if (!e)
+          return false;
+        if (e.length == 0) {
+          if (this.layers.length == 0)
+            return false;
+        } else {
+          if (this.layers.length == 0) {
             //remove all layers, except the hardcoded ones
             var map = this.map;
-            map.eachLayer(function(l){
-                l.off('loading',function(f){
-                    this.loading = true;
-                });
-                l.off('load',function(f){
-                    this.loading = false;
-                });
-                if(l.feature || l.options.config) map.removeLayer(l)
-            })
-        }
-        if(e[0].addedCount>0) {
-            if(this.layers[e[0].index].options.config.picoInfo && this.layers[e[0].index].options.config.picoInfo.text.length > 140) {
-                this.layers[e[0].index].options.config.picoInfo.longtext = this.layers[e[0].index].options.config.picoInfo.text;
-                this.layers[e[0].index].options.config.picoInfo.text = this.layers[e[0].index].options.config.picoInfo.text.substr(0,140)+' ...';
+            map.eachLayer(function (l) {
+              l.off('loading', function (f) {
+                this.loading = true;
+              });
+              l.off('load', function (f) {
+                this.loading = false;
+              });
+              if (l.feature || l.options.config)
+                map.removeLayer(l);
+            });
+          }
+          if (e[0].addedCount > 0) {
+            if (this.layers[e[0].index].options.config.picoInfo && this.layers[e[0].index].options.config.picoInfo.text.length > 140) {
+              this.set('layers' + ('.' + e[0].index) + '.options' + '.config' + '.picoInfo' + '.longtext', this.layers[e[0].index].options.config.picoInfo.text);
+              this.set('layers' + ('.' + e[0].index) + '.options' + '.config' + '.picoInfo' + '.text', this.layers[e[0].index].options.config.picoInfo.text.substr(0, 140) + ' ...');
             }
-            this.map.addLayer(this.layers[e[0].index])
-             this.layers[e[0].index].on('loading',function(f){
-                    this.loading = true;
-                });
-                this.layers[e[0].index].on('load',function(f){
-                    this.loading = false;
-                });
-        }
-        else if(e[0].removed !== undefined) {     
-            e[0].removed[0].off('loading',function(f){
-                    this.loading = true;
-                });
-                e[0].removed[0].off('load',function(f){
-                    this.loading = false;
-                });
-            this.map.removeLayer(e[0].removed[0])
-        }
+            this.map.addLayer(this.layers[e[0].index]);
+            this.layers[e[0].index].on('loading', function (f) {
+              this.loading = true;
+            });
+            this.layers[e[0].index].on('load', function (f) {
+              this.loading = false;
+            });
+          } else if (e[0].removed !== undefined) {
+            e[0].removed[0].off('loading', function (f) {
+              this.loading = true;
+            });
+            e[0].removed[0].off('load', function (f) {
+              this.loading = false;
+            });
+            this.map.removeLayer(e[0].removed[0]);
+          }
         }
         var l = this.layers.slice();
         l.reverse();
         this.layersReversed = l;
         this.orderLayers();
-    },
-    orderLayers: function() {
+      },
+      orderLayers: function () {
         var map = this.map;
-        for(var i=0;i<this.layers.length;i++){
-            if(this.layers[i]._map== null) {
-                map.addLayer(this.layers[i])
-                this.layers[i].on('loading',function(f){
-                    this.loading = true;
-                });
-                this.layers[i].on('load',function(f){
-                    this.loading = false;
-                });
-            }
-            this.layers[i].setZIndex(i);
+        for (var i = 0; i < this.layers.length; i++) {
+          if (this.layers[i]._map == null) {
+            map.addLayer(this.layers[i]);
+            this.layers[i].on('loading', function (f) {
+              this.loading = true;
+            });
+            this.layers[i].on('load', function (f) {
+              this.loading = false;
+            });
+          }
+          this.layers[i].setZIndex(i);
         }
-    },
-
-    leesMeer: function(e,b,c){                
-        var layer = c.templateInstance.model.l;        
-        this.moreInfo = layer.options.config.picoInfo.longtext;        
-    },
-    setOpacity: function(e,b,c){
+      },
+      leesMeer: function (e, b, c) {
+        var layer = c.templateInstance.model.l;
+        this.moreInfo = layer.options.config.picoInfo.longtext;
+      },
+      setOpacity: function (e, b, c) {
         var layer = c.templateInstance.model.l;
         layer.setOpacity(layer.options.opacity);
-    },
-    ready: function() {
+      },
+      ready: function () {
         this.layers = this.layers || [];
-        this.map = this.map || {};  
-        this.moreInfo = this.moreInfo || '';  
-    },
-    toggle: function(e) {
-       e.target.parentElement.icon=e.target.parentElement.icon=='arrow-drop-down'?'arrow-drop-up':'arrow-drop-down';
-       e.target.parentElement.nextElementSibling.toggle();
-    },
-    toggleInfo: function(e) {
+        this.map = this.map || {};
+        this.moreInfo = this.moreInfo || '';
+      },
+      toggle: function (e) {
+        e.target.parentElement.icon = e.target.parentElement.icon == 'arrow-drop-down' ? 'arrow-drop-up' : 'arrow-drop-down';
         e.target.parentElement.nextElementSibling.toggle();
-    },
-    toggleLayer: function(e,b,c) {
-        var layer = c.templateInstance.model.l; 
-        
-        layer.options.visibility = layer.options.visibility?false:true;
-        if(!layer.options.visibility || layer.options.noopacity){
-            this.layers.splice(this.layers.indexOf(layer),1)
+      },
+      toggleInfo: function (e) {
+        e.target.parentElement.nextElementSibling.toggle();
+      },
+      toggleLayer: function (e, b, c) {
+        var layer = c.templateInstance.model.l;
+        layer.options.visibility = layer.options.visibility ? false : true;
+        if (!layer.options.visibility || layer.options.noopacity) {
+          this.layers.splice(this.layers.indexOf(layer), 1);
         }
-    },    
-    dragStart: function(a,b,c){        
+      },
+      dragStart: function (a, b, c) {
         a.dataTransfer.effectAllowed = 'move';
-        a.dataTransfer.setData('text/html', c.innerHTML);    
+        a.dataTransfer.setData('text/html', Polymer.dom(c).innerHTML);
         this.draglayer = c.templateInstance.model.l;
         this.dropped = false;
         this.dragged = this.layers.indexOf(this.draglayer);
         //SMO: hack to stop Chrome from using the paper-ripple as reference
-        c.firstChild.nextElementSibling.firstElementChild.style.display='none'
-    },
-    dragleave: function(a,b,c){
-        if(c.templateInstance.model.hasClass(c.className,'layer')){
-            c.className = c.templateInstance.model.removeClass(c.className,'dragging');
-        }        
-    },
-    dragend: function(a,b,c) {
+        Polymer.dom(Polymer.dom(c).firstChild.nextElementSibling).firstElementChild.style.display = 'none';
+      },
+      dragleave: function (a, b, c) {
+        if (c.templateInstance.model.hasClass(c.className, 'layer')) {
+          c.className = c.templateInstance.model.removeClass(c.className, 'dragging');
+        }
+      },
+      dragend: function (a, b, c) {
         //SMO: hack to stop Chrome from using the paper-ripple as reference
-        c.firstElementChild.firstElementChild.style.display = 'block'
+        Polymer.dom(Polymer.dom(c).firstElementChild).firstElementChild.style.display = 'block';
         var fromIndex = this.layers.indexOf(this.draglayer);
-        if(this.dropped) {
-           this.dragged = fromIndex;
+        if (this.dropped) {
+          this.dragged = fromIndex;
         }
         this.layers.move(fromIndex, this.dragged);
-    },
-    allowDrop: function(a,b,c){
+      },
+      allowDrop: function (a, b, c) {
         var droponlayer = c.templateInstance.model.l;
-        var toIndex =  this.layers.indexOf(droponlayer);
+        var toIndex = this.layers.indexOf(droponlayer);
         var fromIndex = this.layers.indexOf(this.draglayer);
         this.layers.move(fromIndex, toIndex);
         a.preventDefault();
         a.stopPropagation();
-        if(c.templateInstance.model.hasClass(c.className,'layer')){
-            c.className = c.templateInstance.model.addClass(c.className,'dragging');
+        if (c.templateInstance.model.hasClass(c.className, 'layer')) {
+          c.className = c.templateInstance.model.addClass(c.className, 'dragging');
         }
-        if (c.className.indexOf('layer')>=0){
-            var dragstop = c.templateInstance.model.l;
-          
-            
-           
+        if (c.className.indexOf('layer') >= 0) {
+          var dragstop = c.templateInstance.model.l;
         }
-    },
-    dragStop: function(a,b,c){
+      },
+      dragStop: function (a, b, c) {
         this.dropped = true;
         //SMO: hack to stop Chrome from using the paper-ripple as reference
-        c.firstChild.nextElementSibling.firstElementChild.style.display='block'
-         c.className = c.templateInstance.model.removeClass(c.className,'dragging');
+        Polymer.dom(Polymer.dom(c).firstChild.nextElementSibling).firstElementChild.style.display = 'block';
+        c.className = c.templateInstance.model.removeClass(c.className, 'dragging');
         var droponlayer = c.templateInstance.model.l;
-        var toIndex =  this.layers.indexOf(droponlayer);
+        var toIndex = this.layers.indexOf(droponlayer);
         var fromIndex = this.layers.indexOf(this.draglayer);
         this.layers.move(fromIndex, toIndex);
-    }
-});
-</script>
-</polymer-element>
+      },
+      _computeClass: function (l) {
+        return 'layer ' + l.options.minZoom > l._map._zoom ? 'zoomin' : 'visible';
+      },
+      _computeIf: function (l) {
+        return l.options.minZoom <= l._map._zoom;
+      },
+      _computeIf2: function (l) {
+        return l.options.minZoom > l._map._zoom;
+      },
+      _computeIf3: function (l) {
+        return l.options.config.legendUrl && l.options.minZoom <= l._map._zoom;
+      },
+      _computeIf4: function (l, undefined) {
+        return l.options.config.picoInfo !== undefined;
+      },
+      _computeExpression1: function (l) {
+        return this.roundZero(l.options.opacity * 100);
+      },
+      _computeExpression2: function (l) {
+        return l.options.minZoom - l._map._zoom;
+      }
+    });
+  </script>
+</dom-module>

@@ -1,7 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
-<link rel="import" href="../bower_components/core-item/core-item.html">
-<link rel="import" href="../bower_components/core-collapse/core-collapse.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
 
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
@@ -10,9 +10,21 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-interval-slider/paper-interval-slider.html">
 
-<polymer-element name="g-filtermanager" attributes="map filters ">
-<template>
-<style>
+  <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<dom-module id="g-filtermanager">
+  <style>
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
+    [fit] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
+  <style>
 core-collapse {
     background: rgba(225,225,230,0.4);
     -webkit-box-shadow: inset 0px 2px 5px 0px rgba(0,0,0,0.62);
@@ -51,194 +63,194 @@ paper-interval-slider::shadow .knobInner {
     opacity: 0.5;
 }
 </style>
-<style shim-shadowdom>
+  <style shim-shadowdom="">
   paper-spinner.white::shadow .circle {
     border-color: #fff;
   }
 </style>
+  <template>
  <div class="container">
-<core-item icon="arrow-drop-down" label="Filters" on-click="{{toggle}}"><paper-ripple fit ></paper-ripple><span flex></span><paper-checkbox checked="{{filtersOn}}" on-click="{{toggleVis}}"></paper-checkbox></core-item>
-<core-collapse>
-<template id="filterList" repeat="{{l in filters}}">
+<paper-item undefined="Filters" on-click="toggle"><paper-ripple fit=""></paper-ripple><span flex=""></span><paper-checkbox checked="{{filtersOn}}" on-click="toggleVis"></paper-checkbox></paper-item>
+<iron-collapse>
+<template is="dom-repeat" items="{{filters}}" as="l" id="filterList">
    <div class="layer">
    
-        <core-item  icon="arrow-drop-down" title="{{l.options.config.title}}" label="{{l.options.config.title}}" on-click="{{toggle}}">
-            <paper-ripple fit></paper-ripple><span flex></span><paper-spinner class="white"  active={{l.loading}}></paper-spinner><paper-checkbox  checked="{{l.options.config.isFilter}}" on-click="{{stop}}" on-core-change="{{toggleOpac}}"></paper-checkbox>
-        </core-item>
-        <core-collapse>
+        <paper-item undefined="{{l.options.config.title}}" title="{{l.options.config.title}}" on-click="toggle">
+            <paper-ripple fit=""></paper-ripple><span flex=""></span><paper-spinner class="white" active="{{l.loading}}"></paper-spinner><paper-checkbox checked="{{l.options.config.isFilter}}" on-click="stop" on-core-change="toggleOpac"></paper-checkbox>
+        </paper-item>
+        <iron-collapse>
             <div class="filters">
-              <template repeat="{{f in l.options.config.filters}}">
+              <template is="dom-repeat" items="{{l.options.config.filters}}" as="f">
               <div class="filter">
-             <core-item icon="arrow-drop-down" label="{{f.displayname}}" on-click="{{toggle}}"><paper-ripple fit></paper-ripple><span flex></span><paper-checkbox checked="{{f.enabled}}" on-click="{{stop}}" on-core-change="{{toggleFilter}}"></paper-checkbox></core-item>
-              <core-collapse>
-              <div class="filterinfo">filter van: {{f.a}} tot: {{f.b}} {{f.unit}}</div>
-             <paper-interval-slider pin valuea="{{f.a}}" valueb="{{f.b}}" min="{{f.min}}" max="{{f.max}}"  on-change="{{filterChange}}"></paper-interval-slider><span on-click="{{reset}}" style="cursor:pointer">reset</span>
-             </core-collapse>
+             <paper-item undefined="{{f.displayname}}" on-click="toggle"><paper-ripple fit=""></paper-ripple><span flex=""></span><paper-checkbox checked="{{f.enabled}}" on-click="stop" on-core-change="toggleFilter"></paper-checkbox></paper-item>
+              <iron-collapse>
+              <div class="filterinfo">filter van: <span>{{f.a}}</span> tot: <span>{{f.b}}</span> <span>{{f.unit}}</span></div>
+             <paper-interval-slider pin="" valuea="{{f.a}}" valueb="{{f.b}}" min="{{f.min}}" max="{{f.max}}" on-change="filterChange"></paper-interval-slider><span on-click="reset" style="cursor:pointer">reset</span>
+             </iron-collapse>
              </div>
               </template>
             </div>
-        </core-collapse>
+        </iron-collapse>
     </div>
 </template>
-</core-collapse>
+</iron-collapse>
 </div>
 
 </template>
-
-<script>
-
-Polymer({
-    filters: null,
-    
-   toggle: function(e) {
-        var visible = e.target.parentElement.icon=="arrow-drop-down";
-        e.target.parentElement.icon=visible?"arrow-drop-up":"arrow-drop-down";
+  <script>
+    Polymer({
+      is: 'g-filtermanager',
+      properties: {
+        filters: {
+          value: null,
+          notify: true
+        },
+        map: { notify: true }
+      },
+      toggle: function (e) {
+        var visible = e.target.parentElement.icon == 'arrow-drop-down';
+        e.target.parentElement.icon = visible ? 'arrow-drop-up' : 'arrow-drop-down';
         e.target.parentElement.nextElementSibling.toggle();
-        if(visible) {
-             e.target.parentElement.nextElementSibling.style.opacity = 1;
-            for(var i =0;i<this.filters.length;i++) {     
-     
-                this.map.addLayer(this.filters[i].setZIndex(1000+i));
-                 this.filters[i].on('loading',function(f){
-                    this.loading = true;
-                });
-                this.filters[i].on('load',function(f){
-                    this.loading = false;
-                });
-            }            
-            if(e.target.nextElementSibling) e.target.nextElementSibling.nextElementSibling.checked = true;
+        if (visible) {
+          e.target.parentElement.nextElementSibling.style.opacity = 1;
+          for (var i = 0; i < this.filters.length; i++) {
+            this.map.addLayer(this.filters[i].setZIndex(1000 + i));
+            this.filters[i].on('loading', function (f) {
+              this.loading = true;
+            });
+            this.filters[i].on('load', function (f) {
+              this.loading = false;
+            });
+          }
+          if (e.target.nextElementSibling)
+            e.target.nextElementSibling.nextElementSibling.checked = true;
         }
-        
-    },
-    stop: function(a,b,c){
+      },
+      stop: function (a, b, c) {
         a.stopPropagation();
-    },
-    toggleFilter: function(a,b,c){
+      },
+      toggleFilter: function (a, b, c) {
         var layer = c.templateInstance.model.l;
         this.updateFilters(layer);
-    },
-    toggleOpac: function(a,b,c){
-        if(a.target.disabled) return false;
+      },
+      toggleOpac: function (a, b, c) {
+        if (a.target.disabled)
+          return false;
         var layer = c.templateInstance.model.l;
-        
-        layer.setOpacity(layer.options.config.isFilter?1:0);
-        this.updateFilters(layer)
-    },
-    reset: function(a,b,c) {
-         var f = c.templateInstance.model.f;
-         f.a = f.min;
-         f.b = f.max;
-         var layer = c.templateInstance.model.l;
-        this.updateFilters(layer)
-    },
-    updateFilters: function(layer) {
+        layer.setOpacity(layer.options.config.isFilter ? 1 : 0);
+        this.updateFilters(layer);
+      },
+      reset: function (a, b, c) {
+        var f = c.templateInstance.model.f;
+        f.a = f.min;
+        f.b = f.max;
+        var layer = c.templateInstance.model.l;
+        this.updateFilters(layer);
+      },
+      updateFilters: function (layer) {
         var cqlfilter = 'NOT (';
         var filters = layer.options.config.filters;
-        for(var i = 0; i< filters.length; i++){
-            if(!filters[i].b)filters[i].b = filters[i].max;
-            if(filters[i].enabled){
-                var query = filters[i].attribute + ' BETWEEN '+ parseInt(filters[i].a-1) + ' AND ' + parseInt(filters[i].b+1);
-                if(i+1<filters.length) {
-                    query += ' AND '
-                }
-                cqlfilter += query;
+        for (var i = 0; i < filters.length; i++) {
+          if (!filters[i].b)
+            filters[i].b = filters[i].max;
+          if (filters[i].enabled) {
+            var query = filters[i].attribute + ' BETWEEN ' + parseInt(filters[i].a - 1) + ' AND ' + parseInt(filters[i].b + 1);
+            if (i + 1 < filters.length) {
+              query += ' AND ';
             }
+            cqlfilter += query;
+          }
         }
         cqlfilter += ')';
-        if(cqlfilter.lastIndexOf('AND )')>0) {
-            cqlfilter = cqlfilter.substring(0,cqlfilter.lastIndexOf('AND )')-1);
-            cqlfilter +=')';
-        }        
-        var params = layer.wmsParams;
-        if(cqlfilter!='NOT ()') {
-        params.CQL_FILTER = cqlfilter;
-        layer.setOpacity(1);
+        if (cqlfilter.lastIndexOf('AND )') > 0) {
+          cqlfilter = cqlfilter.substring(0, cqlfilter.lastIndexOf('AND )') - 1);
+          cqlfilter += ')';
         }
-        else {delete params.CQL_FILTER;
-            layer.setOpacity(0);
+        var params = layer.wmsParams;
+        if (cqlfilter != 'NOT ()') {
+          params.CQL_FILTER = cqlfilter;
+          layer.setOpacity(1);
+        } else {
+          delete params.CQL_FILTER;
+          layer.setOpacity(0);
         }
         layer.redraw();
-    },
-    bla: function() {
-    
-    },
-    toggleVis: function(e){
+      },
+      bla: function () {
+      },
+      toggleVis: function (e) {
         e.stopPropagation();
         var visible = !e.target.checked;
-        if(visible) {
-            e.target.parentElement.nextElementSibling.style.opacity = 1;
-             for(var i =0;i<this.filters.length;i++) {
-                this.map.addLayer(this.filters[i].setZIndex(1000+i));
-                this.filters[i].on('loading',function(f){
-                    this.loading = true;
-                });
-                this.filters[i].on('load',function(f){
-                    this.loading = false;
-                });
-            }
+        if (visible) {
+          e.target.parentElement.nextElementSibling.style.opacity = 1;
+          for (var i = 0; i < this.filters.length; i++) {
+            this.map.addLayer(this.filters[i].setZIndex(1000 + i));
+            this.filters[i].on('loading', function (f) {
+              this.loading = true;
+            });
+            this.filters[i].on('load', function (f) {
+              this.loading = false;
+            });
+          }
+        } else {
+          e.target.parentElement.nextElementSibling.style.opacity = 0.3;
+          for (var i = 0; i < this.filters.length; i++) {
+            this.map.removeLayer(this.filters[i]);
+            this.filters[i].off('loading', function (f) {
+              this.loading = true;
+            });
+            this.filters[i].off('load', function (f) {
+              this.loading = false;
+            });
+          }
         }
-        else {
-            e.target.parentElement.nextElementSibling.style.opacity = 0.3;
-             for(var i =0;i<this.filters.length;i++) {
-                this.map.removeLayer(this.filters[i]);
-                 this.filters[i].off('loading',function(f){
-                    this.loading = true;
-                });
-                this.filters[i].off('load',function(f){
-                    this.loading = false;
-                });
-            }
-        }
-    },    
-    filterChange: function(a,b,c){
+      },
+      filterChange: function (a, b, c) {
         var layer = c.templateInstance.model.l;
         this.updateFilters(layer);
-    },
-    ready: function(){
-     // this.filters;
-/*var wms_wijk = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
-    layers: 'cbs_buurten_2011_dit',
-    format: 'image/png',
-    transparent: true,
-    filters: [{title:'ink_inw2',min:0,max:70,a:0,b:70},
-    {title:'p_koopwon',min:0,max:100,a:0,b:100},
-    {title:'p_huurcorp',min:0,max:100,a:0,b:100},
-    {title:'p_25_44_jr',min:0,max:100,a:0,b:100}
-    ],
-    title: 'Wijkniveau',
-    visible: true
-});
- 
-var wms_buurt = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
-    layers: 'cbs_buurten_2011_dit',
-    format: 'image/png',
-    transparent: true,
-    title: 'Buurtniveau',
-    visible: true
-});
-
-
-var wms_blok = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
-    layers: 'pc6_energieverbruik_alliander',
-    format: 'image/png',
-    transparent: true,
-    title: 'Blokniveau',
-    visible: true
-});
-
-var wms_pand = L.tileLayer.wms("http://model.geodan.nl/geoserver/pico/wms", {
-    layers: 'gebouwen',
-    format: 'image/png',
-    transparent: true,
-    minZoom: 9,
-    title: 'Pandniveau',
-    visible: true
-});   */
-       // this.filters= [wms_pand,wms_blok, wms_buurt, wms_wijk];
-       // this.filters= [wms_wijk];
-        
-        
-    }    
-});
-</script>
-</polymer-element>
+      },
+      ready: function () {
+      }  // this.filters;
+         /*var wms_wijk = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
+             layers: 'cbs_buurten_2011_dit',
+             format: 'image/png',
+             transparent: true,
+             filters: [{title:'ink_inw2',min:0,max:70,a:0,b:70},
+             {title:'p_koopwon',min:0,max:100,a:0,b:100},
+             {title:'p_huurcorp',min:0,max:100,a:0,b:100},
+             {title:'p_25_44_jr',min:0,max:100,a:0,b:100}
+             ],
+             title: 'Wijkniveau',
+             visible: true
+         });
+          
+         var wms_buurt = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
+             layers: 'cbs_buurten_2011_dit',
+             format: 'image/png',
+             transparent: true,
+             title: 'Buurtniveau',
+             visible: true
+         });
+         
+         
+         var wms_blok = L.tileLayer.wms("http://pico.geodan.nl/geoserver/pico/wms", {
+             layers: 'pc6_energieverbruik_alliander',
+             format: 'image/png',
+             transparent: true,
+             title: 'Blokniveau',
+             visible: true
+         });
+         
+         var wms_pand = L.tileLayer.wms("http://model.geodan.nl/geoserver/pico/wms", {
+             layers: 'gebouwen',
+             format: 'image/png',
+             transparent: true,
+             minZoom: 9,
+             title: 'Pandniveau',
+             visible: true
+         });   */
+         // this.filters= [wms_pand,wms_blok, wms_buurt, wms_wijk];
+         // this.filters= [wms_wijk];
+    });
+  </script>
+</dom-module>

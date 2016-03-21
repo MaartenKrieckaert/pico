@@ -2,159 +2,159 @@
 <link rel="import" href="../bower_components/chart-elements/chart-doughnut.html">
 <link rel="import" href="../bower_components/chart-elements/chart-bar.html">
 
-<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
-<polymer-element name="g-buurtinfo" attributes="layers map enabled">
-
-<template>
-<core-ajax id="wfsreq"
-on-core-response="{{showFeatures}}"
- handleAs="json"
->
-</core-ajax>
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<dom-module id="g-buurtinfo">
+  <template>
+<iron-ajax id="wfsreq" on-core-response="showFeatures" handle-as="json">
+</iron-ajax>
 
 </template>
-<script>
-
-Polymer({
-    enabledChanged:function(){
-        this.mapChanged()
-        
-    },
- puntenChanged: function(){
-        if (this.punten.length == 0) return false;
+  <script>
+    Polymer({
+      is: 'g-buurtinfo',
+      properties: {
+        enabled: {
+          notify: true,
+          observer: 'enabledChanged'
+        },
+        layers: { notify: true },
+        map: {
+          notify: true,
+          observer: 'mapChanged'
+        },
+        punten: { observer: 'puntenChanged' }
+      },
+      enabledChanged: function () {
+        this.mapChanged();
+      },
+      puntenChanged: function () {
+        if (this.punten.length == 0)
+          return false;
         var feature = '<gml:MultiPoint srsName="http://www.opengis.net/gml/srs/epsg.xml#4326" xmlns:gml="http://www.opengis.net/gml" >';
         var punts = this.punten;
-        
-        for(var i = 0;i<punts.length;i++) {
-            var punt = '<gml:pointMember><gml:Point><gml:coordinates>'+punts[i].lng+','+punts[i].lat+'</gml:coordinates></gml:Point></gml:pointMember>'
-            feature+=punt
+        for (var i = 0; i < punts.length; i++) {
+          var punt = '<gml:pointMember><gml:Point><gml:coordinates>' + punts[i].lng + ',' + punts[i].lat + '</gml:coordinates></gml:Point></gml:pointMember>';
+          feature += punt;
         }
-        feature+='</gml:MultiPoint>';
+        feature += '</gml:MultiPoint>';
         var req = this.$.wfsreq;
-        
         req.method = 'POST';
         req.contentType = 'Content-Type:application/xml';
-        req.body = '<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd" srsName="EPSG:4326" ><wfs:Query typeName="feature:cbs_buurten_2011_dit" xmlns:feature="pico" srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"><ogc:And><ogc:Intersects><ogc:PropertyName>wkb_geometry</ogc:PropertyName>'+feature+     '</ogc:Intersects></ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>';
-        req.url='http://pico.geodan.nl/geoserver/ows?service=WFS&outputFormat=application/json&srsName=EPSG:4326';
+        req.body = '<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd" srsName="EPSG:4326" ><wfs:Query typeName="feature:cbs_buurten_2011_dit" xmlns:feature="pico" srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"><ogc:And><ogc:Intersects><ogc:PropertyName>wkb_geometry</ogc:PropertyName>' + feature + '</ogc:Intersects></ogc:And></ogc:Filter></wfs:Query></wfs:GetFeature>';
+        req.url = 'http://pico.geodan.nl/geoserver/ows?service=WFS&outputFormat=application/json&srsName=EPSG:4326';
         req.go();
-    },
-    addPoint: function(e) {
-       
-         var p = e.latlng, add = e.originalEvent.shiftKey;
-                if(this.activeLayer){
-                  this.layers.splice(this.layers.indexOf(this.activeLayer),1);
-                  delete this.activeLayer;
-                }           
-            if(!add) {
-                this.punten = [];
-            }
-            this.punten.push(p);
-    },
-    mapChanged: function(){
-            
-         
-            if(this.map!=null){
-                if(this.enabled) {            
-                    this.map.on('click',this.addPoint,this);
-                }
-                    else {
-                        if(this.activeLayer){
-                          this.layers.splice(this.layers.indexOf(this.activeLayer),1);
-                          delete this.activeLayer;  
-                        }
-                        this.map.off('click',this.addPoint,this);
-                }                
-             
-            }
-          
-        
-    },
-    createText: function(response) {
-        var result ='';
-        var p = response.features.map(function(d){
-            return d.properties;
-        }); 
-        var percToAbs = function (p,tot) {
-            return p<0?0:p*tot/100;
+      },
+      addPoint: function (e) {
+        var p = e.latlng, add = e.originalEvent.shiftKey;
+        if (this.activeLayer) {
+          this.layers.splice(this.layers.indexOf(this.activeLayer), 1);
+          delete this.activeLayer;
         }
-        var absToPerc = function (a,tot) {
-            return Math.round(a/tot*100);
+        if (!add) {
+          this.punten = [];
         }
-        var sum = p.reduce(function(a,i){
-            var tot =i.aant_inw;
-            a.inwoners += i.aant_inw;
-            a.man += i.aant_man;
-            a.vrouw +=i.aant_vrouw;
-            a.p14 += percToAbs(i.p_00_14_jr,tot);
-            a.p24 += percToAbs(i.p_15_24_jr,tot);
-            a.p44 += percToAbs(i.p_25_44_jr,tot);
-            a.p64 += percToAbs(i.p_45_64_jr,tot);
-            a.peo += percToAbs(i.p_65_eo_jr,tot);
-            a.pwa += percToAbs(i.p_west_al,tot);
-            a.paa += percToAbs(i.p_ant_aru,tot);
-            a.pma += percToAbs(i.p_marokko,tot);
-            a.psu += percToAbs(i.p_surinam,tot);
-            a.ptu += percToAbs(i.p_turkije,tot);
-            a.pon += percToAbs(i.p_over_nw,tot);
-            a.pnw += percToAbs(i.p_n_w_al,tot);            
-            a.total = a.p14+a.p24+a.p44+a.p64+a.peo;
-            
-            return a;
-        },{inwoners:0,man:0,vrouw:0,p14:0,p24:0,p44:0,p64:0,peo:0,pwa:0,paa:0,pma:0,psu:0,ptu:0,pon:0,pnw:0});   
+        this.punten.push(p);
+      },
+      mapChanged: function () {
+        if (this.map != null) {
+          if (this.enabled) {
+            this.map.on('click', this.addPoint, this);
+          } else {
+            if (this.activeLayer) {
+              this.layers.splice(this.layers.indexOf(this.activeLayer), 1);
+              delete this.activeLayer;
+            }
+            this.map.off('click', this.addPoint, this);
+          }
+        }
+      },
+      createText: function (response) {
+        var result = '';
+        var p = response.features.map(function (d) {
+          return d.properties;
+        });
+        var percToAbs = function (p, tot) {
+          return p < 0 ? 0 : p * tot / 100;
+        };
+        var absToPerc = function (a, tot) {
+          return Math.round(a / tot * 100);
+        };
+        var sum = p.reduce(function (a, i) {
+          var tot = i.aant_inw;
+          a.inwoners += i.aant_inw;
+          a.man += i.aant_man;
+          a.vrouw += i.aant_vrouw;
+          a.p14 += percToAbs(i.p_00_14_jr, tot);
+          a.p24 += percToAbs(i.p_15_24_jr, tot);
+          a.p44 += percToAbs(i.p_25_44_jr, tot);
+          a.p64 += percToAbs(i.p_45_64_jr, tot);
+          a.peo += percToAbs(i.p_65_eo_jr, tot);
+          a.pwa += percToAbs(i.p_west_al, tot);
+          a.paa += percToAbs(i.p_ant_aru, tot);
+          a.pma += percToAbs(i.p_marokko, tot);
+          a.psu += percToAbs(i.p_surinam, tot);
+          a.ptu += percToAbs(i.p_turkije, tot);
+          a.pon += percToAbs(i.p_over_nw, tot);
+          a.pnw += percToAbs(i.p_n_w_al, tot);
+          a.total = a.p14 + a.p24 + a.p44 + a.p64 + a.peo;
+          return a;
+        }, {
+          inwoners: 0,
+          man: 0,
+          vrouw: 0,
+          p14: 0,
+          p24: 0,
+          p44: 0,
+          p64: 0,
+          peo: 0,
+          pwa: 0,
+          paa: 0,
+          pma: 0,
+          psu: 0,
+          ptu: 0,
+          pon: 0,
+          pnw: 0
+        });
         console.log(sum);
-        
-
-        
-        result += '<h2>'+p[0].gemnaam+'</h2>';
-        result += 'In het gekozen gebied wonen '+sum.inwoners+' mensen waarvan '+absToPerc(sum.man,sum.inwoners)+'% man en '+absToPerc(sum.vrouw,sum.inwoners)+'% vrouw.';
-        
-        result += '<h3>Leeftijdsverdeling</h3>';        
-        result += '<chart-doughnut values="['+absToPerc(sum.p14,sum.inwoners)+','+absToPerc(sum.p24,sum.inwoners)+','+absToPerc(sum.p44,sum.inwoners)+','+absToPerc(sum.p64,sum.inwoners)+','+absToPerc(sum.peo,sum.inwoners)+']" labels=["% 0-14","% 15-24","% 25-44","% 45-64","% 65 en ouder"]></chart-doughnut>'
-        
-        
-
+        result += '<h2>' + p[0].gemnaam + '</h2>';
+        result += 'In het gekozen gebied wonen ' + sum.inwoners + ' mensen waarvan ' + absToPerc(sum.man, sum.inwoners) + '% man en ' + absToPerc(sum.vrouw, sum.inwoners) + '% vrouw.';
+        result += '<h3>Leeftijdsverdeling</h3>';
+        result += '<chart-doughnut values="[' + absToPerc(sum.p14, sum.inwoners) + ',' + absToPerc(sum.p24, sum.inwoners) + ',' + absToPerc(sum.p44, sum.inwoners) + ',' + absToPerc(sum.p64, sum.inwoners) + ',' + absToPerc(sum.peo, sum.inwoners) + ']" labels=["% 0-14","% 15-24","% 25-44","% 45-64","% 65 en ouder"]></chart-doughnut>';
         //TODO: meer kleuren in de grafiek
-
-        result += '<h3>Afkomst inwoners</h3>';        
-        result += '<chart-doughnut height="150" colors="[\'#8c510a\', \'#d8b365\', \'#f6e8c3\', \'#f5f5f5\', \'#c7eae5\', \'#5ab4ac\',\'#01665e\']" values="['+absToPerc(sum.pwa,sum.inwoners)+','+absToPerc(sum.paa,sum.inwoners)+','+absToPerc(sum.pma,sum.inwoners)+','+absToPerc(sum.psu,sum.inwoners)+','+absToPerc(sum.ptu,sum.inwoners)+','+absToPerc(sum.pon,sum.inwoners)+','+ (100 - absToPerc(sum.pnw,sum.inwoners) - absToPerc(sum.pwa,sum.inwoners) )+ ']" labels="[\'% westese allochtonen\',\'% Antilianen\',\'% Marokanen\',\'% Surinamers\',\'% Turken\',\'% overige niet westerse allochtonen\',\'% Autochtonen\']"></chart-doughnut>'       
-        
-        
-        
+        result += '<h3>Afkomst inwoners</h3>';
+        result += '<chart-doughnut height="150" colors="[\'#8c510a\', \'#d8b365\', \'#f6e8c3\', \'#f5f5f5\', \'#c7eae5\', \'#5ab4ac\',\'#01665e\']" values="[' + absToPerc(sum.pwa, sum.inwoners) + ',' + absToPerc(sum.paa, sum.inwoners) + ',' + absToPerc(sum.pma, sum.inwoners) + ',' + absToPerc(sum.psu, sum.inwoners) + ',' + absToPerc(sum.ptu, sum.inwoners) + ',' + absToPerc(sum.pon, sum.inwoners) + ',' + (100 - absToPerc(sum.pnw, sum.inwoners) - absToPerc(sum.pwa, sum.inwoners)) + ']" labels="[\'% westese allochtonen\',\'% Antilianen\',\'% Marokanen\',\'% Surinamers\',\'% Turken\',\'% overige niet westerse allochtonen\',\'% Autochtonen\']"></chart-doughnut>';
         return result;
-    },
-    
-    showFeatures: function(d) {
-        if(!this.activeLayer) { this.activeLayer =  L.geoJson(d.detail.response).bindPopup(this.createText(d.detail.response));
-            var title = 'Info: ';
-            if(d.detail.response.features[0].properties.buurtnaam !== '') title +=d.detail.response.features[0].properties.buurtnaam;
-            else title += d.detail.response.features[0].properties.gemnaam;
-            this.activeLayer.options = {noopacity:true,config:{'title':title}};
-            
-            this.layers.push(this.activeLayer);
-            var showPopup = function(e) {
-                if(e.layer.openPopup) {
-                    e.layer.openPopup();
-                    e.layer._map.off('layeradd',showPopup)
-                }
-            };
-            this.map.on('layeradd',showPopup)
+      },
+      showFeatures: function (d) {
+        if (!this.activeLayer) {
+          this.activeLayer = L.geoJson(d.detail.response).bindPopup(this.createText(d.detail.response));
+          var title = 'Info: ';
+          if (d.detail.response.features[0].properties.buurtnaam !== '')
+            title += d.detail.response.features[0].properties.buurtnaam;
+          else
+            title += d.detail.response.features[0].properties.gemnaam;
+          this.set('activeLayer.options', {
+            noopacity: true,
+            config: { 'title': title }
+          });
+          this.layers.push(this.activeLayer);
+          var showPopup = function (e) {
+            if (e.layer.openPopup) {
+              e.layer.openPopup();
+              e.layer._map.off('layeradd', showPopup);
+            }
+          };
+          this.map.on('layeradd', showPopup);
+        } else {
+          this.activeLayer.addData(d.detail.response);
         }
-        else {
-            
-            this.activeLayer.addData(d.detail.response);
-        }
-        
-
-        
-    },
-  ready: function() {
+      },
+      ready: function () {
         this.enabled = this.enabled || false;
-        this.layers = this.layers || [];        
+        this.layers = this.layers || [];
         this.punten = this.punten || [];
         this.map = this.map || {};
-  }
-  });
-</script>
-  
-
-</polymer-element>
+      }
+    });
+  </script>
+</dom-module>
