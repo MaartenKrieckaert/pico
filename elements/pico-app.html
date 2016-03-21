@@ -209,8 +209,15 @@ paper-dialog {
           type: Boolean,
           value: false
         },
+        layers: {
+          type: Array,
+          notify: true
+        },
         moreInfo: { observer: 'moreInfoChanged' }
       },
+       observers: [
+        'layersChanged(layers.splices)'
+      ],
       toggleDrawer: function (e) {
         this.$.drawerPanel.togglePanel();
       },
@@ -226,6 +233,9 @@ paper-dialog {
         if (this.moreInfo.length > 0) {
           this.$.moreInfoDialog.open();
         }
+      },
+      layersChanged: function(){
+        console.log('changed layer');
       },
       resetMoreInfo: function () {
         this.moreInfo = '';

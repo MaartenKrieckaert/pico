@@ -75,7 +75,7 @@ paper-dropdown-menu,paper-dropdown {
     <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(layer)}}<paper-ripple fit=""></paper-ripple></paper-item>
         <iron-collapse opened="{{layer.opened}}">
             <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">
-            <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle"><paper-ripple fit="">{{sub.subname}}</paper-ripple></paper-item>
+            <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle">{{sub.subname}}<paper-ripple fit=""></paper-ripple></paper-item>
                 <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
                 <template is="dom-repeat" items="{{sub.layers}}" as="l">
                <paper-item class="layer" vis="{{l.options.visibility}}" on-click="{{_computeIcon(l)}}">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
@@ -99,7 +99,9 @@ paper-dropdown-menu,paper-dropdown {
           notify: true,
           observer: 'accountChanged'
         },
-        activeLayers: { notify: true },
+        activeLayers: { 
+          type: Array,
+          notify: true },
         docurl: {
           type: String,
           value: 'https://services.geodan.nl/document/api'
@@ -108,6 +110,9 @@ paper-dropdown-menu,paper-dropdown {
         mapType: { notify: true },
         search: { observer: 'searchChanged' }
       },
+      observers: [
+        'activeLayersChanged(activeLayers.splices)'
+      ],
       //Walk through the layers to find those matching the search string
       //and update the visible list in the element
       searchChanged: function () {
@@ -118,6 +123,9 @@ paper-dropdown-menu,paper-dropdown {
         var open = zoek == '' ? false : true;
         //to make sure all core-collapse are open when searching
         this.updateCatalogus(resultaat, open);
+      },
+      activeLayersChanged: function(){
+        console.log('layers changed')
       },
       initialConfig: function (d) {
         var response = d.detail.response;
@@ -201,7 +209,7 @@ paper-dropdown-menu,paper-dropdown {
         this.filters = layerlist.filter(function (l) {
           return l.options.config.filters;
         });
-        this.activeLayers = layerlist.filter(function (l) {
+       this.activeLayers = layerlist.filter(function (l) {
           return l.options.visibility;
         });
       },
@@ -283,7 +291,8 @@ paper-dropdown-menu,paper-dropdown {
         var layer = e.model.l;
         //replace undefined with false
         layer.options.visibility = layer.options.visibility ? false : true;
-        layer.options.visibility ? this.activeLayers.push(layer) : this.activeLayers.splice(this.activeLayers.indexOf(layer), 1);
+        layer.options.visibility ? this.push('activeLayers',layer) : this.splice('activeLayers',this.activeLayers.indexOf(layer), 1);
+        
       },
       ready: function () {
         this.config = {};
@@ -311,3 +320,5 @@ paper-dropdown-menu,paper-dropdown {
     });
   </script>
 </dom-module>
+
+

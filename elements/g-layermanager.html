@@ -28,7 +28,7 @@
     left: 0%;
     background: white;
 }
-core-collapse {
+iron-collapse {
     background: rgba(225,225,230,0.4);
     -webkit-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
     -moz-box-shadow: inset 0px 2px 5px 0px rgba(161,161,161,0.62);
@@ -63,10 +63,10 @@ core-collapse {
     border-bottom: solid 1px white;
     background: white;
 }
-core-item {
+iron-item {
     cursor: pointer;
 }
-core-collapse {
+iron-collapse {
     cursor: move;
 }
 .container {
@@ -118,7 +118,7 @@ core-collapse {
     <div draggable="true" if="{{l.options.visibility}}" on-dragstart="dragStart" on-dragover="allowDrop" on-dragenter="dragenter" on-dragleave="dragleave" on-dragend="dragend" on-drop="dragStop" class$="{{_computeClass(l)}}">
 
 
-        <paper-item undefined="{{l.options.config.title}}" title="{{l.options.config.title}}" on-click="toggle">
+        <paper-item title="{{l.options.config.title}}" on-click="toggle">{{l.options.config.title}}
             <paper-ripple fit=""></paper-ripple><span flex=""></span><template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template>
         </paper-item>
         <iron-collapse>
@@ -178,13 +178,16 @@ core-collapse {
       properties: {
         draglayer: { value: null },
         layers: {
-          notify: true,
-          observer: 'layersChanged'
+          type: Array,
+          notify: true
         },
         layersReversed: { notify: true },
         map: { notify: true },
         moreInfo: { notify: true }
       },
+      observers: [
+        'layersChanged(layers)'
+      ],
       //filter to remove decimals
       roundZero: function (value) {
         return Math.round(value);
@@ -212,6 +215,7 @@ core-collapse {
         return classlist += c;
       },
       layersChanged: function (_, e) {
+        console.log('change')
         if (!e)
           return false;
         if (e.length == 0) {
