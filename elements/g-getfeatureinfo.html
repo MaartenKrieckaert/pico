@@ -154,12 +154,12 @@
         if (this.map != null) {
           if (this.enabled) {
             if (!this.on) {
-              this.on = true;
-              this.map.on('click', this.getFeatureInfo, this);
+         //     this.on = true;
+         //     this.map.on('click', this.getFeatureInfo, this);
             }
           } else {
-            this.on = false;
-            this.map.off('click', this.getFeatureInfo, this);
+         //   this.on = false;
+          //  this.map.off('click', this.getFeatureInfo, this);
           }
         }
       },

@@ -23,6 +23,7 @@
     "Proj4Leaflet": "proj4leaflet#^0.7.2",
     "paper-elements": "^1.0.7",
     "leaflet-omnivore": "^0.3.2",
-    "iron-icons": "^1.1.3"
+    "iron-icons": "^1.1.3",
+    "iron-elements": "^1.0.8"
   }
 }
