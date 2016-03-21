@@ -13,7 +13,7 @@
 <link rel="import" href="../bower_components/neon-animation/animations/slide-from-right-animation.html">
 <link rel="import" href="../bower_components/neon-animation/animations/slide-from-left-animation.html">
 
-<link rel="import" href="./g-cas.html">
+<link rel="import" href="./gm-cas.html">
 <link rel="import" href="./g-buurtinfo.html">
 <link rel="import" href="./g-energyinfo.html">
 <link rel="import" href="./g-getfeatureinfo.html">
@@ -162,7 +162,7 @@ paper-dialog {
         <paper-icon-button title="Energie" class="side" id="acivateEnergyInfo" enabled="{{energyinfo}}" src="../style/energy.png" on-click="toggleEnergyInfo"></paper-icon-button>
     </div>
     <paper-icon-button icon="menu" id="navicon" on-click="toggleDrawer"></paper-icon-button>
-    <paper-icon-button id="idicon" icon="{{_computeIcon(account, undefined)}}" on-click="toggleLogin"></paper-icon-button>
+    <paper-icon-button id="idicon" icon="{{_computeIcon(account)}}" on-click="toggleLogin"></paper-icon-button>
   </paper-header-panel>
   <paper-header-panel drawer="" style="background:white;z-index:1">
     <paper-toolbar id="navheader" class="medium-tall">
@@ -180,10 +180,10 @@ paper-dialog {
  <paper-button affirmative="" autofocus="">Sluit</paper-button>
 </paper-dialog>
 <paper-dialog id="login"
-    entry-animation="core-transition-right"
+    entry-animation="slide-from-right-animation"
     exit-animation=""
     >
-  <g-cas account="{{account}}"></g-cas>
+  <gm-cas account="{{account}}"></gm-cas>
          <template is="dom-if" if="{{_computeIf(account, undefined)}}"> <paper-button affirmative="" style="color:red"><a href$="{{logoutUrl}}">Uitloggen</a></paper-button></template><paper-button affirmative="" autofocus="">Sluit</paper-button>
 </paper-dialog>
 
@@ -292,7 +292,7 @@ paper-dialog {
         return buurtinfo || energyinfo;
       },
       _computeIcon: function (account, undefined) {
-        return account.ID == undefined ? 'social:person-outline' : 'account-circle';
+        return account.ID == undefined ? 'social:person-outline' : 'account-circle';        
       },
       _computeIf: function (account, undefined) {
         return account.ID != undefined;
