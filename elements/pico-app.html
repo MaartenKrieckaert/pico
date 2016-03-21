@@ -634,18 +634,18 @@ paper-icon-button[enabled=true].side {
     <g-layermanager layers="{{layers}}" map="{{map}}" moreinfo="{{moreInfo}}"></g-layermanager>
   </paper-header-panel>
 </paper-drawer-panel>
-<paper-action-dialog id="moreInfoDialog" transition="core-transition-left" on-core-overlay-close-completed="resetMoreInfo">
+<paper-dialog id="moreInfoDialog" transition="core-transition-left" on-core-overlay-close-completed="resetMoreInfo">
  <span>{{moreInfo}}</span>
  <paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
-<paper-action-dialog id="login" transition="core-transition-right">
+</paper-dialog>
+<paper-dialog id="login" transition="core-transition-right">
   <g-cas account="{{account}}"></g-cas>
          <template is="dom-if" if="{{_computeIf(account, undefined)}}"> <paper-button affirmative="" style="color:red"><a href$="{{logoutUrl}}">Uitloggen</a></paper-button></template><paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
-<paper-action-dialog class="scrolling" id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">hier
+</paper-dialog>
+<paper-dialog class="scrolling" id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">hier
   <g-layercatalogus id="layerConfig" maptype="leaflet" activelayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
 <paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
+</paper-dialog>
 <g-buurtinfo enabled="{{buurtinfo}}" layers="{{layers}}" map="{{map}}"></g-buurtinfo>
 <g-energyinfo enabled="{{energyinfo}}" layers="{{layers}}" map="{{map}}"></g-energyinfo>
 <g-getfeatureinfo enabled="{{_computeEnabled(buurtinfo, energyinfo)}}" activelayers="{{layers}}" map="{{map}}"></g-getfeatureinfo>
