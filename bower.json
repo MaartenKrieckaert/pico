@@ -25,6 +25,7 @@
     "Chart.js": "chartjs#^1.0.2",
     "leaflet-omnivore": "^0.3.2",
     "iron-elements": "PolymerElements/iron-elements#^1.0.8",
-    "paper-elements": "PolymerElements/paper-elements#^1.0.7"
+    "paper-elements": "PolymerElements/paper-elements#^1.0.7",
+    "neon-animation": "^1.1.1"
   }
 }

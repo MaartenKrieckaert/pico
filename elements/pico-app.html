@@ -10,6 +10,9 @@
 <link rel="import" href="./g-layermanager.html">
 <link rel="import" href="./g-filtermanager.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/neon-animation/animations/slide-from-right-animation.html">
+<link rel="import" href="../bower_components/neon-animation/animations/slide-from-left-animation.html">
+
 <link rel="import" href="./g-cas.html">
 <link rel="import" href="./g-buurtinfo.html">
 <link rel="import" href="./g-energyinfo.html">
@@ -37,7 +40,7 @@
     border: solid 1px rgba(0,0,0,0);
     overflow: hidden;
     position: absolute;
-         box-sizing: border-box;
+    box-sizing: border-box;
 
 }
 body {
@@ -129,7 +132,18 @@ paper-icon-button[enabled=true].side {
 }
 </style>
   <template>
+      <paper-dialog id="layerlist"
+          entry-animation="slide-from-right-animation"
 
+      >
+          <h2>Beschikbare lagen</h2>
+          <paper-dialog-scrollable>
+              <g-layercatalogus id="layerConfig" maptype="leaflet" activelayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
+          </paper-dialog-scrollable>
+          <div class="buttons">
+              <paper-button dialog-confirm autofocus="">Sluit</paper-button>
+          </div>
+      </paper-dialog>
 <paper-drawer-panel id="drawerPanel">
   <paper-header-panel main="" mode="cover" shadow="" style="z-index:0">
     <paper-toolbar class="medium-tall">
@@ -155,18 +169,21 @@ paper-icon-button[enabled=true].side {
     <g-layermanager layers="{{layers}}" map="{{map}}" moreinfo="{{moreInfo}}"></g-layermanager>
   </paper-header-panel>
 </paper-drawer-panel>
-<paper-dialog id="moreInfoDialog" transition="core-transition-left" on-core-overlay-close-completed="resetMoreInfo">
+<paper-dialog id="moreInfoDialog"
+    entry-animation="core-transition-left"
+    exit-animation=""
+    on-core-overlay-close-completed="resetMoreInfo">
  <span>{{moreInfo}}</span>
  <paper-button affirmative="" autofocus="">Sluit</paper-button>
 </paper-dialog>
-<paper-dialog id="login" transition="core-transition-right">
+<paper-dialog id="login"
+    entry-animation="core-transition-right"
+    exit-animation=""
+    >
   <g-cas account="{{account}}"></g-cas>
          <template is="dom-if" if="{{_computeIf(account, undefined)}}"> <paper-button affirmative="" style="color:red"><a href$="{{logoutUrl}}">Uitloggen</a></paper-button></template><paper-button affirmative="" autofocus="">Sluit</paper-button>
 </paper-dialog>
-<paper-dialog class="scrolling" id="layerlist" transition="core-transition-right" heading="Beschikbare lagen">hier
-  <g-layercatalogus id="layerConfig" maptype="leaflet" activelayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
-<paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-dialog>
+
 <g-buurtinfo enabled="{{buurtinfo}}" layers="{{layers}}" map="{{map}}"></g-buurtinfo>
 <g-energyinfo enabled="{{energyinfo}}" layers="{{layers}}" map="{{map}}"></g-energyinfo>
 <g-getfeatureinfo enabled="{{_computeEnabled(buurtinfo, energyinfo)}}" activelayers="{{layers}}" map="{{map}}"></g-getfeatureinfo>

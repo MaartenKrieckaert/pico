@@ -2,7 +2,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-  <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <dom-module id="g-getfeatureinfo">
   <style>
     /* TODO(polyup): For speed, consider reworking these styles with .classes
@@ -21,7 +21,10 @@
   <template>
 <iron-ajax method="get" id="ajaxRequest" auto="false" url="{{infourl}}" withcredentials="true" handle-as="json" layers="" on-core-response="handleResponse"></iron-ajax>
 
-   <paper-action-dialog layered="true" transition="core-transition-top" id="featureInfo" heading="Informatie" class="scrolling" layout="" vertical="">
+   <paper-dialog layered="true"
+    transition="core-transition-top" id="featureInfo"  layout="" vertical="">
+    <h2>Informatie</h2>
+<paper-dialog-scrollable>
   <div>
   <template is="dom-if" if="{{_computeIf(featureinfo)}}">
    Geen informatie gevonden
@@ -57,8 +60,11 @@
   </template-->
 
   </div>
-  <paper-button affirmative="" autofocus="">Sluit</paper-button>
-</paper-action-dialog>
+  </paper-dialog-scrollable>
+  <div class="buttons">
+      <paper-button dialog-confirm autofocus="">Sluit</paper-button>
+  </div>
+</paper-dialog>
 </template>
   <script>
     Polymer({
