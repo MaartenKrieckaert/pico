@@ -261,20 +261,12 @@ iron-collapse {
             this.map.removeLayer(e[0].removed[0]);
           }
         }*/
-        var self = this;
-        if(e&&e.indexSplices) {
-          var splice = e.indexSplices[0];
-          if (splice.addedCount >0 )
-          self.layers.push(splice.object[splice.index]);
-          //TODO: meer dan 1 record per keer
-          else
-          self.layers.splice(splice.index,1)
-
+        
         var l = this.layers.slice();
         l.reverse();
         this.layersReversed = l;
         this.orderLayers();
-        }
+        
       },
       orderLayers: function () {
         var map = this.map;
