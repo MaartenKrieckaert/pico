@@ -217,11 +217,11 @@ iron-collapse {
         var classlist = this.removeClass(classes, c);
         return classlist += c;
       },
-      layersChanged: function (_, e) {
+      layersChanged: function (e) {
         console.log('change')
         if (!e)
           return false;
-        if (e.length == 0) {
+        /*if (e.length == 0) {
           if (this.layers.length == 0)
             return false;
         } else {
@@ -260,11 +260,20 @@ iron-collapse {
             });
             this.map.removeLayer(e[0].removed[0]);
           }
-        }
+        }*/
+        if(e&&e.detail&&e.detail.value.indexSplices) {
+          var splice = e.detail.value.indexSplices[0];
+          if (splice.addedCount >0 )
+          self.push('layers',splice.object[splice.index]);
+          //TODO: meer dan 1 record per keer
+          else
+          self.splice('layers',splice.index,1)
+
         var l = this.layers.slice();
         l.reverse();
         this.layersReversed = l;
         this.orderLayers();
+        }
       },
       orderLayers: function () {
         var map = this.map;

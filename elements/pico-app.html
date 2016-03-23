@@ -218,10 +218,14 @@ paper-dialog {
       layerChanged: function(e){
         var self = this;
         if(e&&e.detail&&e.detail.value.indexSplices) {
-        e.detail.value.indexSplices[0].object.forEach(function(layer){
-          self.push('layers',layer)
-          })
-        }       
+          var splice = e.detail.value.indexSplices[0];
+          if (splice.addedCount >0 )
+          self.push('layers',splice.object[splice.index]);
+          //TODO: meer dan 1 record per keer
+          else
+          self.splice('layers',splice.index,1)
+        }
+
       },
       toggleDrawer: function (e) {
         this.$.drawerPanel.togglePanel();
