@@ -179,14 +179,17 @@ iron-collapse {
         draglayer: { value: null },
         layers: {
           type: Array,
-          notify: true
+          notify: true,
+          value: function(){
+            return [];
+          }
         },
         layersReversed: { notify: true },
         map: { notify: true },
         moreInfo: { notify: true }
       },
       observers: [
-        'layersChanged(layers)'
+        'layersChanged(layers.splices)'
       ],
       //filter to remove decimals
       roundZero: function (value) {
@@ -287,7 +290,7 @@ iron-collapse {
         layer.setOpacity(layer.options.opacity);
       },
       ready: function () {
-        this.layers = this.layers || [];
+   //     this.layers = this.layers || [];
         this.map = this.map || {};
         this.moreInfo = this.moreInfo || '';
       },

@@ -66,7 +66,7 @@ paper-dropdown-menu,paper-dropdown {
   with-credentials="true"
   on-response="handleResponse"
   id="getConfig"></iron-ajax>
-<template is="dom-if" if="{{_computeIf(account, undefined)}}">
+<template is="dom-if" if="{{_computeIf(account)}}">
     <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
 <template is="dom-if" if="{{_computeIf2(account)}}">
@@ -78,7 +78,7 @@ paper-dropdown-menu,paper-dropdown {
             <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle">{{sub.subname}}<paper-ripple fit=""></paper-ripple></paper-item>
                 <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
                 <template is="dom-repeat" items="{{sub.layers}}" as="l">
-               <paper-item class="layer" vis="{{l.options.visibility}}" on-click="{{_computeIcon(l)}}">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
+               <paper-item class="layer" vis="{{l.options.visibility}}" on-click="toggleLayer">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
                 </template>
                 </iron-collapse>
             </div>
@@ -99,9 +99,11 @@ paper-dropdown-menu,paper-dropdown {
           notify: true,
           observer: 'accountChanged'
         },
-        activeLayers: { 
-          type: Array,
-          notify: true },
+        activeLayers: {
+          type:Array,
+          value: function(){return [];},
+          notify: true
+        },
         docurl: {
           type: String,
           value: 'https://services.geodan.nl/document/api'
@@ -109,10 +111,7 @@ paper-dropdown-menu,paper-dropdown {
         filters: { notify: true },
         mapType: { notify: true },
         search: { observer: 'searchChanged' }
-      },
-      observers: [
-        'activeLayersChanged(activeLayers.splices)'
-      ],
+      },      
       //Walk through the layers to find those matching the search string
       //and update the visible list in the element
       searchChanged: function () {
@@ -123,10 +122,7 @@ paper-dropdown-menu,paper-dropdown {
         var open = zoek == '' ? false : true;
         //to make sure all core-collapse are open when searching
         this.updateCatalogus(resultaat, open);
-      },
-      activeLayersChanged: function(){
-        console.log('layers changed')
-      },
+      },     
       initialConfig: function (d) {
         var response = d.detail.response;
         this.config = response;
@@ -205,13 +201,17 @@ paper-dropdown-menu,paper-dropdown {
       //Create the layercatalogus and set the filters and activeLayers (visible in the g-layermanager)
       //attributes that need to change when loading or changing a config should be set here
       parseLayers: function (layerlist, open) {
+        var self = this;
         this.updateCatalogus(layerlist, open);
         this.filters = layerlist.filter(function (l) {
           return l.options.config.filters;
         });
-       this.activeLayers = layerlist.filter(function (l) {
+        var tmplist = layerlist.filter(function (l) {
           return l.options.visibility;
         });
+        tmplist.forEach(function(item) {
+          self.push('activeLayers',item);
+        })
       },
       //Update the catalogus-tree after a config-change or search-change
       updateCatalogus: function (layerlist, open) {
@@ -292,7 +292,7 @@ paper-dropdown-menu,paper-dropdown {
         //replace undefined with false
         layer.options.visibility = layer.options.visibility ? false : true;
         layer.options.visibility ? this.push('activeLayers',layer) : this.splice('activeLayers',this.activeLayers.indexOf(layer), 1);
-        
+        return true;
       },
       ready: function () {
         this.config = {};
@@ -300,7 +300,7 @@ paper-dropdown-menu,paper-dropdown {
         this.layers = this.layers || [];
         this.filters = this.filters || [];
         this.catalogus = this.catalogus || [];
-        this.activeLayers = this.activeLayers || [];
+        //this.activeLayers = this.activeLayers || [];
         this.account = this.account || {};
         this.configs = [];
         this.activeConfig = '';

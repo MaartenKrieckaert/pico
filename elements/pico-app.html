@@ -143,7 +143,7 @@ paper-dialog {
       >
           <h2>Beschikbare lagen</h2>
           <paper-dialog-scrollable>
-              <g-layercatalogus id="layerConfig" maptype="leaflet" activelayers="{{layers}}" account="{{account}}" filters="{{filters}}"></g-layercatalogus>
+              <g-layercatalogus id="layerConfig" maptype="leaflet" activeLayers="{{layers}}" account="{{account}}" filters="{{filters}}" on-active-layers-changed="layerChanged"></g-layercatalogus>
           </paper-dialog-scrollable>
           <div class="buttons">
               <paper-button dialog-confirm autofocus="">Sluit</paper-button>
@@ -210,14 +210,19 @@ paper-dialog {
           value: false
         },
         layers: {
-          type: Array,
-          notify: true
-        },
+         type: Array,
+         notify: true
+       },
         moreInfo: { observer: 'moreInfoChanged' }
+      },     
+      layerChanged: function(e){
+        var self = this;
+        if(e&&e.detail&&e.detail.value.indexSplices) {
+        e.detail.value.indexSplices[0].object.forEach(function(layer){
+          self.push('layers',layer)
+          })
+        }       
       },
-       observers: [
-        'layersChanged(layers.splices)'
-      ],
       toggleDrawer: function (e) {
         this.$.drawerPanel.togglePanel();
       },
@@ -234,16 +239,13 @@ paper-dialog {
           this.$.moreInfoDialog.open();
         }
       },
-      layersChanged: function(){
-        console.log('changed layer');
-      },
       resetMoreInfo: function () {
         this.moreInfo = '';
       },
       ready: function () {
           this.scopeSubtree(this.$.map, true);
         // Initialize the instance's "list" property to empty array.
-        this.layers = this.layers || [];
+       // this.layers = this.layers || [];
         this.filters = this.filters || [];
         this.account = this.account || {};
         this.moreInfo = this.moreInfo || '';
