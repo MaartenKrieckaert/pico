@@ -1,12 +1,14 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <!-- TODO
 <link rel="import" href="../bower_components/core-drag-drop/core-drag-drop.html">
 -->
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
-
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
   <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <dom-module id="g-layermanager">
   <style>
@@ -119,7 +121,8 @@ iron-collapse {
 
 
         <paper-item title="{{l.options.config.title}}" on-click="toggle">{{l.options.config.title}}
-            <paper-ripple fit=""></paper-ripple><span flex=""></span><template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template>
+            <paper-ripple fit=""></paper-ripple><span flex=""></span>
+            <template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template>
         </paper-item>
         <iron-collapse>
             <div class="layerdetails">
@@ -147,13 +150,13 @@ iron-collapse {
     </div>
 </template>
 </div>
-<paper-action-dialog id="meerInfoVenster" style="position:absolute;display:none;background: white;padding: 10px;top:200px;">
+<paper-dialog id="meerInfoVenster" style="position:absolute;display:none;background: white;padding: 10px;top:200px;">
   <div id="meerInfoText">
   </div>
   <div class="buttons">
     <paper-button affirmative="" autofocus="">Sluit</paper-button>
       </div>
-</paper-action-dialog>
+</paper-dialog>
 </template>
   <script>
     //Fancy function to easily move items in an array
@@ -261,12 +264,12 @@ iron-collapse {
             this.map.removeLayer(e[0].removed[0]);
           }
         }*/
-        
+
         var l = this.layers.slice();
         l.reverse();
         this.layersReversed = l;
         this.orderLayers();
-        
+
       },
       orderLayers: function () {
         var map = this.map;

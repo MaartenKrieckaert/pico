@@ -99,10 +99,11 @@ paper-dropdown-menu,paper-dropdown {
           notify: true,
           observer: 'accountChanged'
         },
-        activeLayers: {
-          type:Array,
-          value: function(){return [];},
-          notify: true
+        activelayers: {
+          //type:Array,
+          //value: function(){return [];},
+          notify: true,
+          observer: 'debuglayers'
         },
         docurl: {
           type: String,
@@ -110,8 +111,12 @@ paper-dropdown-menu,paper-dropdown {
         },
         filters: { notify: true },
         mapType: { notify: true },
-        search: { observer: 'searchChanged' }
-      },      
+        search: { observer: 'searchChanged' },
+        url: String
+      },
+      debuglayers: function(){
+          console.log('!! g-layercatalogus');
+      },
       //Walk through the layers to find those matching the search string
       //and update the visible list in the element
       searchChanged: function () {
@@ -122,7 +127,7 @@ paper-dropdown-menu,paper-dropdown {
         var open = zoek == '' ? false : true;
         //to make sure all core-collapse are open when searching
         this.updateCatalogus(resultaat, open);
-      },     
+      },
       initialConfig: function (d) {
         var response = d.detail.response;
         this.config = response;
@@ -137,7 +142,7 @@ paper-dropdown-menu,paper-dropdown {
       //The response from the document service will be parsed here.
       handleResponse: function (d) {
       if(d.detail&&d.detail.xhr&&d.detail.xhr.response) {
-        var response = d.detail.xhr.response;      
+        var response = d.detail.xhr.response;
         if (response.constructor === Array) {
           //just a list of configs
           this.configs = response;
@@ -198,7 +203,7 @@ paper-dropdown-menu,paper-dropdown {
         }
       }
       },
-      //Create the layercatalogus and set the filters and activeLayers (visible in the g-layermanager)
+      //Create the layercatalogus and set the filters and activelayers (visible in the g-layermanager)
       //attributes that need to change when loading or changing a config should be set here
       parseLayers: function (layerlist, open) {
         var self = this;
@@ -210,7 +215,7 @@ paper-dropdown-menu,paper-dropdown {
           return l.options.visibility;
         });
         tmplist.forEach(function(item) {
-          self.push('activeLayers',item);
+          self.push('activelayers',item);
         })
       },
       //Update the catalogus-tree after a config-change or search-change
@@ -286,12 +291,12 @@ paper-dropdown-menu,paper-dropdown {
           el.transitionEnd();
         }, 330);
       },
-      //add/remove layer to the activeLayers list
+      //add/remove layer to the activelayers list
       toggleLayer: function (e) {
         var layer = e.model.l;
         //replace undefined with false
         layer.options.visibility = layer.options.visibility ? false : true;
-        layer.options.visibility ? this.push('activeLayers',layer) : this.splice('activeLayers',this.activeLayers.indexOf(layer), 1);
+        layer.options.visibility ? this.push('activelayers',layer) : this.splice('activelayers',this.activelayers.indexOf(layer), 1);
         return true;
       },
       ready: function () {
@@ -300,7 +305,7 @@ paper-dropdown-menu,paper-dropdown {
         this.layers = this.layers || [];
         this.filters = this.filters || [];
         this.catalogus = this.catalogus || [];
-        //this.activeLayers = this.activeLayers || [];
+        //this.activelayers = this.activelayers || [];
         this.account = this.account || {};
         this.configs = [];
         this.activeConfig = '';
@@ -311,7 +316,7 @@ paper-dropdown-menu,paper-dropdown {
       _computeIf2: function (account, undefined) {
         return account.ID != undefined;
       },
-      _computeLabel: function (layer) {        
+      _computeLabel: function (layer) {
         return layer.group == null ? 'Generiek' : layer.group;
       },
       _computeIcon: function (l) {
@@ -320,5 +325,3 @@ paper-dropdown-menu,paper-dropdown {
     });
   </script>
 </dom-module>
-
-

@@ -139,11 +139,16 @@ paper-dialog {
   <template>
       <paper-dialog id="layerlist"
           entry-animation="slide-from-right-animation"
-
       >
           <h2>Beschikbare lagen</h2>
           <paper-dialog-scrollable>
-              <g-layercatalogus id="layerConfig" maptype="leaflet" activeLayers="{{layers}}" account="{{account}}" filters="{{filters}}" on-active-layers-changed="layerChanged"></g-layercatalogus>
+            <g-layercatalogus id="layerConfig"
+                maptype="leaflet"
+                activelayers="{{layers}}"
+                account="{{account}}"
+                filters="{{filters}}"
+                xxon-active-layers-changed="layerChanged"
+            ></g-layercatalogus>
           </paper-dialog-scrollable>
           <div class="buttons">
               <paper-button dialog-confirm autofocus="">Sluit</paper-button>
@@ -195,7 +200,7 @@ paper-dialog {
 
 <g-buurtinfo enabled="{{buurtinfo}}" layers="{{layers}}" map="{{map}}"></g-buurtinfo>
 <g-energyinfo enabled="{{energyinfo}}" layers="{{layers}}" map="{{map}}"></g-energyinfo>
-<g-getfeatureinfo enabled="{{_computeEnabled(buurtinfo, energyinfo)}}" activelayers="{{layers}}" map="{{map}}"></g-getfeatureinfo>
+<g-getfeatureinfo enabled="{{_computeEnabled(buurtinfo, energyinfo)}}" activeLayers="{{layers}}" map="{{map}}"></g-getfeatureinfo>
 </template>
   <script>
     Polymer({
@@ -211,10 +216,15 @@ paper-dialog {
         },
         layers: {
          type: Array,
-         notify: true
+         value: function(){return [];},
+         //notify: true //no notify needed on lowest level,
+         observer: 'debuglayers'
        },
         moreInfo: { observer: 'moreInfoChanged' }
-      },     
+      },
+      debuglayers: function(){
+          console.log('!! pico app');
+      },
       layerChanged: function(e){
         var self = this;
         if(e&&e.detail&&e.detail.value.indexSplices) {
@@ -314,7 +324,7 @@ paper-dialog {
         return buurtinfo || energyinfo;
       },
       _computeIcon: function (account, undefined) {
-        return account.ID == undefined ? 'social:person-outline' : 'account-circle';        
+        return account.ID == undefined ? 'social:person-outline' : 'account-circle';
       },
       _computeIf: function (account, undefined) {
         return account.ID != undefined;
