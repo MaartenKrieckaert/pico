@@ -68,7 +68,7 @@ paper-dropdown-menu,paper-dropdown {
   id="getConfig"></iron-ajax>
     <paper-input id="zoekVeld" value="{{searchString::input}}" label="Zoek een laag"></paper-input>
     <template is="dom-repeat" items="{{catalogus}}" as="layer" id="layerList" filter="{{computeFilter(searchString)}}">
-    <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(layer.options.visibility)}}"  item-icon></iron-icon>{{layer.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
+    <paper-item class="layer" on-click="toggleLayer"><paper-checkbox checked$="layer.options.visibility"></paper-checkbox>{{layer.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
     </template>
     <array-selector id="selector" items="{{catalogus}}" selected="{{activelayers}}" multi toggle></array-selector>
     <template is="dom-repeat" items="{{activelayers}}">
@@ -98,12 +98,7 @@ paper-dropdown-menu,paper-dropdown {
           notify: true,
           observer: 'accountChanged'
         },
-        catalogus: {
-          type: Array,
-          value: function(){
-            return [];
-          }
-        },
+        
         docurl: {
           type: String,
           value: 'https://services.geodan.nl/document/api'
@@ -118,8 +113,8 @@ paper-dropdown-menu,paper-dropdown {
       ],
       layersChanged: function(e){
         if(e && e.path&& e.path.split('.').length >1 && e.path.split('.')[1].indexOf('#') >= 0) {
-   /*      this.updateCatalogus(this.layers);
-         this.$$('#layerList').render()*/
+   //      this.updateCatalogus(this.layers);
+         this.$.layerList.render()
         }
       },
       //Walk through the layers to find those matching the search string
@@ -317,7 +312,7 @@ paper-dropdown-menu,paper-dropdown {
       //add/remove layer to the activelayers list
       toggleLayer: function (e) {
         var item = this.$.layerList.itemForElement(e.target);
-        e.model.set('layer.options.visibility',item.options.visibility?false:true);
+        e.model.set('layer.options.visibility',item.options.visibility?undefined:true);
          this.$.selector.select(item);
 
         /*var layer = e.model.layer;
@@ -343,7 +338,7 @@ paper-dropdown-menu,paper-dropdown {
         this.mapType = this.mapType || 'leaflet';
         this.layers = this.layers || [];
         this.filters = this.filters || [];
-       // this.catalogus = this.catalogus || [];
+        this.catalogus = this.catalogus || [];
         this.account = this.account || {};
         this.configs = [];
         this.activeConfig = '';
