@@ -69,21 +69,24 @@ paper-dropdown-menu,paper-dropdown {
 <template is="dom-if" if="{{_computeIf(account)}}">
     <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
+
 <template is="dom-if" if="{{_computeIf2(account)}}">
     <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
-    <template is="dom-repeat" items="{{catalogus}}" as="layer" id="layerList">
-    <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(layer)}}<paper-ripple fit=""></paper-ripple></paper-item>
-        <iron-collapse opened="{{layer.opened}}">
+    <template is="dom-repeat" items="{{catalogus}}" as="group" id="layerList">
+    <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(group)}}<paper-ripple fit=""></paper-ripple></paper-item>
+        <iron-collapse opened="{{group.opened}}">
+            <!-- temporarily no subgroups
             <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">
             <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle">{{sub.subname}}<paper-ripple fit=""></paper-ripple></paper-item>
                 <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
-                <template is="dom-repeat" items="{{sub.layers}}" as="l">
+                <template is="dom-repeat" items="{{sub.layers}}" as="l" filter={{visiblelayers()}} observer="options.visibility">
                <paper-item class="layer" on-click="toggleLayer"><paper-checkbox checked="{{l.options.visibility}}" on-click="toggleLayer" style='padding:20px'></paper-checkbox>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
                 </template>
                 </iron-collapse>
             </div>
             </template>
-            <template is="dom-repeat" items="{{layer.layers}}" as="l" idx="{{index}}">
+            -->
+            <template class='repeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layerfilter(group.group)}}">
                  <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
             </template>
         </iron-collapse>
@@ -101,7 +104,7 @@ paper-dropdown-menu,paper-dropdown {
         },
         activelayers: {
           notify: true
-          
+
         },
         docurl: {
           type: String,
@@ -115,10 +118,18 @@ paper-dropdown-menu,paper-dropdown {
       observers: [
         'layersChanged(activelayers.*)'
       ],
+      layerfilter: function(groupname){
+          return function(layer){
+              return layer.options.config.groupName == groupname;
+          };
+      },
       layersChanged: function(e){
+        console.log(e.path, e.value);
+        
+        /*
         if(e && e.path&& e.path.split('.').length >1 && e.path.split('.')[1].indexOf('#') >= 0) {
          this.set(e.path,e.value);
-        }
+        }*/
       },
       //Walk through the layers to find those matching the search string
       //and update the visible list in the element
@@ -305,24 +316,18 @@ paper-dropdown-menu,paper-dropdown {
         var layer = e.model.l;
         //replace undefined with false
         var vis = layer.options.visibility ? false : true;
-        var path = 'layers.#'+e.model.index+'.options.visibility';
-        console.log(path);
-      //  this.set(path,vis);
-        var cpath = 'catalogus.#'+e.model.dataHost.idx+'.'+path;
-        console.log(cpath);
-        this.set(cpath,vis);
-        
-        if(layer.options.visibility ){          
-          this.push('activelayers',layer) 
-          console.log('activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
-          this.linkPaths(cpath,'activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
+        var idx = this.layers.indexOf(layer);
+        var path = 'layers.'+idx+'.options.visibility';
+        //console.log(path);
+        this.set(path,vis);
+
+        if(layer.options.visibility ){
+          this.push('activelayers',layer)
         }
-        else { 
-          this.unlinkPaths(cpath);
+        else {
           this.splice('activelayers',this.activelayers.indexOf(layer), 1);
-          
         }
-        
+
       },
       ready: function () {
         window.debugthis = this;
