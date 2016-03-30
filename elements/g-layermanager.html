@@ -125,7 +125,7 @@ iron-collapse {
 </style>
   <template>
 <div class="container">
-<template is="dom-repeat" items="{{layersReversed}}" as="l" id="layerList">
+<template is="dom-repeat" items="{{layers}}" as="l" id="layerList">
     <div draggable="true" if="{{l.options.visibility}}" on-dragstart="dragStart" on-dragover="allowDrop" on-dragenter="dragenter" on-dragleave="dragleave" on-dragend="dragend" on-drop="dragStop" class$="{{_computeClass(l)}}">
 
 
@@ -232,9 +232,7 @@ iron-collapse {
       layersChanged: function (e) {
         if (!e)
           return false;
-        var l = this.layers.slice();
-        l.reverse();
-        this.layersReversed = l;
+        
         this.orderLayers();
 
       },

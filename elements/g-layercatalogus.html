@@ -66,42 +66,43 @@ paper-dropdown-menu,paper-dropdown {
   with-credentials="true"
   on-response="handleResponse"
   id="getConfig"></iron-ajax>
-<template is="dom-if" if="{{_computeIf(account)}}">
-    <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
-</template>
-<template is="dom-if" if="{{_computeIf2(account)}}">
-    <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
-    <template is="dom-repeat" items="{{catalogus}}" as="layer" id="layerList">
-    <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(layer)}}<paper-ripple fit=""></paper-ripple></paper-item>
-        <iron-collapse opened="{{layer.opened}}">
-            <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">
-            <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle">{{sub.subname}}<paper-ripple fit=""></paper-ripple></paper-item>
-                <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
-                <template is="dom-repeat" items="{{sub.layers}}" as="l">
-               <paper-item class="layer" on-click="toggleLayer"><paper-checkbox checked="{{l.options.visibility}}" on-click="toggleLayer" style='padding:20px'></paper-checkbox>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
-                </template>
-                </iron-collapse>
-            </div>
-            </template>
-            <template is="dom-repeat" items="{{layer.layers}}" as="l" idx="{{index}}">
-                 <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
-            </template>
-        </iron-collapse>
-    </div>
+    <paper-input id="zoekVeld" value="{{searchString::input}}" label="Zoek een laag"></paper-input>
+    <template is="dom-repeat" items="{{catalogus}}" as="layer" id="layerList" filter="{{computeFilter(searchString)}}">
+    <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(layer.options.visibility)}}"  item-icon></iron-icon>{{layer.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
+    </template>
+    <array-selector id="selector" items="{{catalogus}}" selected="{{activelayers}}" multi toggle></array-selector>
+    <template is="dom-repeat" items="{{activelayers}}">
+      <div>Selected: <span>{{item.options.config.title}}</span></div>
     </template>
 </template>
 </template>
   <script>
     Polymer({
       is: 'g-layercatalogus',
+      computeFilter: function(string) {
+        if (!string) {
+          // set filter to null to disable filtering
+          return null;
+        } else {
+          // return a filter function for the current search string
+          string = string.toLowerCase();
+          return function(layer) {
+            var title = layer.options.config.title.toLowerCase();
+           
+            return (title.indexOf(string) != -1 );
+          };
+        }
+      },
       properties: {
         account: {
           notify: true,
           observer: 'accountChanged'
         },
-        activelayers: {
-          notify: true
-          
+        catalogus: {
+          type: Array,
+          value: function(){
+            return [];
+          }
         },
         docurl: {
           type: String,
@@ -117,7 +118,8 @@ paper-dropdown-menu,paper-dropdown {
       ],
       layersChanged: function(e){
         if(e && e.path&& e.path.split('.').length >1 && e.path.split('.')[1].indexOf('#') >= 0) {
-         this.set(e.path,e.value);
+   /*      this.updateCatalogus(this.layers);
+         this.$$('#layerList').render()*/
         }
       },
       //Walk through the layers to find those matching the search string
@@ -169,6 +171,7 @@ paper-dropdown-menu,paper-dropdown {
           };
           //Parse the GeodanMaps layerset into a set of Leaflet layers
           var makeLeaflet = function (configLayer) {
+            var tmplayers = []
             var minZoom = 0;
             if (configLayer.options.maxResolution) {
               minZoom = calcZoom(configLayer.options.maxResolution);
@@ -196,12 +199,16 @@ paper-dropdown-menu,paper-dropdown {
           };
           switch (this.mapType) {
           case 'leaflet':
-            this.layers = layerset.map(makeLeaflet);
+            tmplayers = layerset.map(makeLeaflet).splice(1,5);
             break;
           default:
-            this.layers = layerset.map(makeLeaflet);
+            tmplayers = layerset.map(makeLeaflet);
             break;
           }
+          var self = this;
+          tmplayers.forEach(function(layer){
+            self.push('layers',layer);
+          })
           this.parseLayers(this.layers);
         }
       }
@@ -211,7 +218,7 @@ paper-dropdown-menu,paper-dropdown {
       parseLayers: function (layerlist, open) {
         var self = this;
         this.updateCatalogus(layerlist, open);
-        this.filters = layerlist.filter(function (l) {
+    /*    this.filters = layerlist.filter(function (l) {
           return l.options.config.filters;
         });
         var tmplist = layerlist.filter(function (l) {
@@ -219,7 +226,7 @@ paper-dropdown-menu,paper-dropdown {
         });
         tmplist.forEach(function(item) {
           self.push('activelayers',item);
-        })
+        })*/
       },
       //Update the catalogus-tree after a config-change or search-change
       updateCatalogus: function (layerlist, open) {
@@ -228,13 +235,18 @@ paper-dropdown-menu,paper-dropdown {
         //or group>layer nodes
         var catId = 0;
         var self = this;
+        //this.splice('catalogus',0,this.catalogus.length);
         var catalogus = layerlist.reduce(function (a, l) {
           if (l.options.config.filters && l.options.config.filters.length > 0) {
             //exclude filterabe layers form the catalogus
             //TODO: make this configurable??
             return a;
           }
-          l.options.catid = catId++;
+          else {
+            a.push(l);
+            return a
+          }
+      /*    l.options.catid = catId++;
           var group = a.filter(function (d) {
             return d.group == l.options.config.groupName;
           });
@@ -282,7 +294,7 @@ paper-dropdown-menu,paper-dropdown {
               group[0].layers.push(l);
             }
           }
-          return a;
+          return a;*/
         }, []);
         catalogus.forEach(function(item){
           self.push('catalogus',item);
@@ -291,10 +303,12 @@ paper-dropdown-menu,paper-dropdown {
       //open/close core-collapses
       toggle: function (e) {
         e.target.icon = e.target.icon == 'arrow-drop-down' ? 'arrow-drop-up' : 'arrow-drop-down';
+        //TODO: polymer.dom
         e.target.nextElementSibling.toggle();
       },
       //workaround for nested core-collapses
       resizeGroup: function (e) {
+        //TODO: polymer.dom
         var el = e.target.parentElement.parentElement;
         setTimeout(function () {
           el.transitionEnd();
@@ -302,27 +316,26 @@ paper-dropdown-menu,paper-dropdown {
       },
       //add/remove layer to the activelayers list
       toggleLayer: function (e) {
-        var layer = e.model.l;
-        //replace undefined with false
+        var item = this.$.layerList.itemForElement(e.target);
+        e.model.set('layer.options.visibility',item.options.visibility?false:true);
+         this.$.selector.select(item);
+
+        /*var layer = e.model.layer;
         var vis = layer.options.visibility ? false : true;
-        var path = 'layers.#'+e.model.index+'.options.visibility';
-        console.log(path);
-      //  this.set(path,vis);
-        var cpath = 'catalogus.#'+e.model.dataHost.idx+'.'+path;
-        console.log(cpath);
-        this.set(cpath,vis);
+         var path = 'layer.options.visibility';
+        e.model.set(path,vis);
         
         if(layer.options.visibility ){          
           this.push('activelayers',layer) 
           console.log('activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
-          this.linkPaths(cpath,'activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
+          e.model.linkPaths(path,'activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
         }
         else { 
-          this.unlinkPaths(cpath);
+          e.model.unlinkPaths(path);
           this.splice('activelayers',this.activelayers.indexOf(layer), 1);
           
         }
-        
+        */
       },
       ready: function () {
         window.debugthis = this;
@@ -330,7 +343,7 @@ paper-dropdown-menu,paper-dropdown {
         this.mapType = this.mapType || 'leaflet';
         this.layers = this.layers || [];
         this.filters = this.filters || [];
-        this.catalogus = this.catalogus || [];
+       // this.catalogus = this.catalogus || [];
         this.account = this.account || {};
         this.configs = [];
         this.activeConfig = '';
@@ -345,6 +358,7 @@ paper-dropdown-menu,paper-dropdown {
         return layer.group == null ? 'Generiek' : layer.group;
       },
       _computeIcon: function (l) {
+        console.log('compute');
         return l ? 'check-box' : 'check-box-outline-blank';
       }
     });
