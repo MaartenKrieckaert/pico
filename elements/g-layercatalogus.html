@@ -78,13 +78,13 @@ paper-dropdown-menu,paper-dropdown {
             <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle">{{sub.subname}}<paper-ripple fit=""></paper-ripple></paper-item>
                 <iron-collapse on-core-collapse-open="resizeGroup" opened="{{sub.opened}}">
                 <template is="dom-repeat" items="{{sub.layers}}" as="l">
-               <paper-item class="layer" vis="{{l.options.visibility}}" on-click="toggleLayer">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
+               <paper-item class="layer" on-click="toggleLayer"><paper-checkbox checked="{{l.options.visibility}}" on-click="toggleLayer" style='padding:20px'></paper-checkbox>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
                 </template>
                 </iron-collapse>
             </div>
             </template>
-            <template is="dom-repeat" items="{{layer.layers}}" as="l">
-                 <paper-item class="layer" vis="{{l.options.visibility}}" on-click="toggleLayer">{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
+            <template is="dom-repeat" items="{{layer.layers}}" as="l" idx="{{index}}">
+                 <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
             </template>
         </iron-collapse>
     </div>
@@ -100,10 +100,8 @@ paper-dropdown-menu,paper-dropdown {
           observer: 'accountChanged'
         },
         activelayers: {
-          //type:Array,
-          //value: function(){return [];},
-          notify: true,
-          observer: 'debuglayers'
+          notify: true
+          
         },
         docurl: {
           type: String,
@@ -114,8 +112,13 @@ paper-dropdown-menu,paper-dropdown {
         search: { observer: 'searchChanged' },
         url: String
       },
-      debuglayers: function(){
-          console.log('!! g-layercatalogus');
+      observers: [
+        'layersChanged(activelayers.*)'
+      ],
+      layersChanged: function(e){
+        if(e && e.path&& e.path.split('.').length >1 && e.path.split('.')[1].indexOf('#') >= 0) {
+         this.set(e.path,e.value);
+        }
       },
       //Walk through the layers to find those matching the search string
       //and update the visible list in the element
@@ -223,12 +226,15 @@ paper-dropdown-menu,paper-dropdown {
         //the layerlist is a flat list with .groupName and .subgroupName attributes
         //it needs to be changed into a tree structure with group>subgroup>layer
         //or group>layer nodes
-        this.catalogus = layerlist.reduce(function (a, l) {
+        var catId = 0;
+        var self = this;
+        var catalogus = layerlist.reduce(function (a, l) {
           if (l.options.config.filters && l.options.config.filters.length > 0) {
             //exclude filterabe layers form the catalogus
             //TODO: make this configurable??
             return a;
           }
+          l.options.catid = catId++;
           var group = a.filter(function (d) {
             return d.group == l.options.config.groupName;
           });
@@ -278,6 +284,9 @@ paper-dropdown-menu,paper-dropdown {
           }
           return a;
         }, []);
+        catalogus.forEach(function(item){
+          self.push('catalogus',item);
+        })
       },
       //open/close core-collapses
       toggle: function (e) {
@@ -295,17 +304,33 @@ paper-dropdown-menu,paper-dropdown {
       toggleLayer: function (e) {
         var layer = e.model.l;
         //replace undefined with false
-        layer.options.visibility = layer.options.visibility ? false : true;
-        layer.options.visibility ? this.push('activelayers',layer) : this.splice('activelayers',this.activelayers.indexOf(layer), 1);
-        return true;
+        var vis = layer.options.visibility ? false : true;
+        var path = 'layers.#'+e.model.index+'.options.visibility';
+        console.log(path);
+      //  this.set(path,vis);
+        var cpath = 'catalogus.#'+e.model.dataHost.idx+'.'+path;
+        console.log(cpath);
+        this.set(cpath,vis);
+        
+        if(layer.options.visibility ){          
+          this.push('activelayers',layer) 
+          console.log('activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
+          this.linkPaths(cpath,'activelayers.#'+this.activelayers.indexOf(layer)+'.options.visibility');
+        }
+        else { 
+          this.unlinkPaths(cpath);
+          this.splice('activelayers',this.activelayers.indexOf(layer), 1);
+          
+        }
+        
       },
       ready: function () {
+        window.debugthis = this;
         this.config = {};
         this.mapType = this.mapType || 'leaflet';
         this.layers = this.layers || [];
         this.filters = this.filters || [];
         this.catalogus = this.catalogus || [];
-        //this.activelayers = this.activelayers || [];
         this.account = this.account || {};
         this.configs = [];
         this.activeConfig = '';
@@ -320,7 +345,7 @@ paper-dropdown-menu,paper-dropdown {
         return layer.group == null ? 'Generiek' : layer.group;
       },
       _computeIcon: function (l) {
-        return l.options.visibility ? 'check-box' : 'check-box-outline-blank';
+        return l ? 'check-box' : 'check-box-outline-blank';
       }
     });
   </script>

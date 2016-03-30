@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <!-- TODO
@@ -112,6 +112,15 @@ iron-collapse {
   <style shim-shadowdom="">
   paper-spinner.black::shadow .circle {
     border-color: #000;
+
+  }
+  .paper-spinner-0 {
+    display: block;
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    right: 5px;
+    top: 5px;
   }
 </style>
   <template>
@@ -120,10 +129,10 @@ iron-collapse {
     <div draggable="true" if="{{l.options.visibility}}" on-dragstart="dragStart" on-dragover="allowDrop" on-dragenter="dragenter" on-dragleave="dragleave" on-dragend="dragend" on-drop="dragStop" class$="{{_computeClass(l)}}">
 
 
-        <paper-item title="{{l.options.config.title}}" on-click="toggle">{{l.options.config.title}}
-            <paper-ripple fit=""></paper-ripple><span flex=""></span>
-            <template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template>
-        </paper-item>
+        <paper-icon-item title="{{l.options.config.title}}" on-click="toggle"><iron-icon icon="expand-more" item-icon></iron-icon>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple>
+            <!--span flex=""></span>
+            <template is="dom-if" if="{{_computeIf(l)}}"><paper-spinner class="black" active="{{l.loading}}"></paper-spinner></template-->
+        </paper-icon-item>
         <iron-collapse>
             <div class="layerdetails">
             <template is="dom-if" if="{{!l.options.noopacity}}">
@@ -138,7 +147,7 @@ iron-collapse {
                 </div>
                 </template>
 
-                <div class="layerRest"><span class="removeLayer" on-click="toggleLayer">verwijder laag</span><template is="dom-if" if="{{_computeIf4(l, undefined)}}"><span on-click="toggleInfo" class="infoLayer">info</span></template></div>
+                <div class="layerRest"><span class="removeLayer" on-click="removeLayer">verwijder laag</span><template is="dom-if" if="{{_computeIf4(l)}}"><span on-click="toggleInfo" class="infoLayer">info</span></template></div>
 
                  <iron-collapse class="picoinfo">
                     <div class="picoinfotext">{{l.options.config.picoInfo.text}}</div>
@@ -221,50 +230,8 @@ iron-collapse {
         return classlist += c;
       },
       layersChanged: function (e) {
-        console.log('change')
         if (!e)
           return false;
-        /*if (e.length == 0) {
-          if (this.layers.length == 0)
-            return false;
-        } else {
-          if (this.layers.length == 0) {
-            //remove all layers, except the hardcoded ones
-            var map = this.map;
-            map.eachLayer(function (l) {
-              l.off('loading', function (f) {
-                this.loading = true;
-              });
-              l.off('load', function (f) {
-                this.loading = false;
-              });
-              if (l.feature || l.options.config)
-                map.removeLayer(l);
-            });
-          }
-          if (e[0].addedCount > 0) {
-            if (this.layers[e[0].index].options.config.picoInfo && this.layers[e[0].index].options.config.picoInfo.text.length > 140) {
-              this.set('layers' + ('.' + e[0].index) + '.options' + '.config' + '.picoInfo' + '.longtext', this.layers[e[0].index].options.config.picoInfo.text);
-              this.set('layers' + ('.' + e[0].index) + '.options' + '.config' + '.picoInfo' + '.text', this.layers[e[0].index].options.config.picoInfo.text.substr(0, 140) + ' ...');
-            }
-            this.map.addLayer(this.layers[e[0].index]);
-            this.layers[e[0].index].on('loading', function (f) {
-              this.loading = true;
-            });
-            this.layers[e[0].index].on('load', function (f) {
-              this.loading = false;
-            });
-          } else if (e[0].removed !== undefined) {
-            e[0].removed[0].off('loading', function (f) {
-              this.loading = true;
-            });
-            e[0].removed[0].off('load', function (f) {
-              this.loading = false;
-            });
-            this.map.removeLayer(e[0].removed[0]);
-          }
-        }*/
-
         var l = this.layers.slice();
         l.reverse();
         this.layersReversed = l;
@@ -272,26 +239,21 @@ iron-collapse {
 
       },
       orderLayers: function () {
+        var self = this;
         var map = this.map;
         for (var i = 0; i < this.layers.length; i++) {
           if (this.layers[i]._map == null) {
-            map.addLayer(this.layers[i]);
-            this.layers[i].on('loading', function (f) {
-              this.loading = true;
-            });
-            this.layers[i].on('load', function (f) {
-              this.loading = false;
-            });
+            map.addLayer(this.layers[i]);            
           }
           this.layers[i].setZIndex(i);
         }
       },
       leesMeer: function (e, b, c) {
-        var layer = c.templateInstance.model.l;
+        var layer = e.model.l;
         this.moreInfo = layer.options.config.picoInfo.longtext;
       },
       setOpacity: function (e, b, c) {
-        var layer = c.templateInstance.model.l;
+        var layer = e.model.l;
         layer.setOpacity(layer.options.opacity);
       },
       ready: function () {
@@ -300,62 +262,74 @@ iron-collapse {
         this.moreInfo = this.moreInfo || '';
       },
       toggle: function (e) {
-        e.target.parentElement.icon = e.target.parentElement.icon == 'arrow-drop-down' ? 'arrow-drop-up' : 'arrow-drop-down';
-        e.target.parentElement.nextElementSibling.toggle();
+        if(e.target.icon) {
+          //clicked the iron-icon
+          e.target.icon = e.target.icon == 'expand-more' ? 'expand-less' : 'expand-more';
+          e.target.parentElement.parentElement.nextElementSibling.toggle();
+        }
+        else {
+          e.target.firstElementChild.firstElementChild.icon = e.target.firstElementChild.firstElementChild.icon == 'expand-more' ? 'expand-less' : 'expand-more';
+          e.target.nextElementSibling.toggle()
+        }
       },
       toggleInfo: function (e) {
         e.target.parentElement.nextElementSibling.toggle();
       },
-      toggleLayer: function (e, b, c) {
-        var layer = c.templateInstance.model.l;
-        layer.options.visibility = layer.options.visibility ? false : true;
-        if (!layer.options.visibility || layer.options.noopacity) {
-          this.layers.splice(this.layers.indexOf(layer), 1);
-        }
+      removeLayer: function (e, b, c) {
+        var layer = e.model.l;
+        var idx = this.layers.length - e.model.index-1;
+        var path = 'layers.'+idx+'.options.visibility';
+        this.set(path,false)
+        this.map.removeLayer(layer);
+        this.splice('layers',this.layers.indexOf(layer), 1);
       },
-      dragStart: function (a, b, c) {
-        a.dataTransfer.effectAllowed = 'move';
-        a.dataTransfer.setData('text/html', Polymer.dom(c).innerHTML);
-        this.draglayer = c.templateInstance.model.l;
+      dragStart: function (e) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', Polymer.dom(e.srcElement).innerHTML);
+        this.draglayer = e.model.l;
         this.dropped = false;
         this.dragged = this.layers.indexOf(this.draglayer);
         //SMO: hack to stop Chrome from using the paper-ripple as reference
-        Polymer.dom(Polymer.dom(c).firstChild.nextElementSibling).firstElementChild.style.display = 'none';
+        Polymer.dom(Polymer.dom(e.srcElement).firstChild.nextElementSibling).firstElementChild.style.display = 'none';
       },
-      dragleave: function (a, b, c) {
-        if (c.templateInstance.model.hasClass(c.className, 'layer')) {
-          c.className = c.templateInstance.model.removeClass(c.className, 'dragging');
+      dragleave: function (e) {
+        var self = this;
+        if (self.hasClass(e.srcElement.className, 'layer')) {
+          e.srcElement.className = self.removeClass(e.srcElement.className, 'dragging');
         }
       },
-      dragend: function (a, b, c) {
+      dragend: function (e) {
         //SMO: hack to stop Chrome from using the paper-ripple as reference
-        Polymer.dom(Polymer.dom(c).firstElementChild).firstElementChild.style.display = 'block';
+        Polymer.dom(Polymer.dom(e.srcElement).firstElementChild).firstElementChild.style.display = 'block';
         var fromIndex = this.layers.indexOf(this.draglayer);
         if (this.dropped) {
           this.dragged = fromIndex;
         }
         this.layers.move(fromIndex, this.dragged);
       },
-      allowDrop: function (a, b, c) {
-        var droponlayer = c.templateInstance.model.l;
+      allowDrop: function (e) {
+        var self = this;
+        var droponlayer = e.model.l;
         var toIndex = this.layers.indexOf(droponlayer);
         var fromIndex = this.layers.indexOf(this.draglayer);
         this.layers.move(fromIndex, toIndex);
-        a.preventDefault();
-        a.stopPropagation();
-        if (c.templateInstance.model.hasClass(c.className, 'layer')) {
-          c.className = c.templateInstance.model.addClass(c.className, 'dragging');
+        e.preventDefault();
+        e.stopPropagation();
+        if (self.hasClass(e.srcElement.className, 'layer')) {
+          e.srcElement.className = self.addClass(e.srcElement.className, 'dragging');
         }
-        if (c.className.indexOf('layer') >= 0) {
-          var dragstop = c.templateInstance.model.l;
+        if (e.srcElement.className.indexOf('layer') >= 0) {
+          var dragstop = e.model.l;
         }
       },
-      dragStop: function (a, b, c) {
+      dragStop: function (e) {
+        var self = this;
         this.dropped = true;
         //SMO: hack to stop Chrome from using the paper-ripple as reference
-        Polymer.dom(Polymer.dom(c).firstChild.nextElementSibling).firstElementChild.style.display = 'block';
-        c.className = c.templateInstance.model.removeClass(c.className, 'dragging');
-        var droponlayer = c.templateInstance.model.l;
+        //Polymer.dom(Polymer.dom(e.srcElement).firstChild.nextElementSibling).firstElementChild.style.display = 'block';
+
+        e.srcElement.className = self.removeClass(e.srcElement.className, 'dragging');
+        var droponlayer = e.model.l;
         var toIndex = this.layers.indexOf(droponlayer);
         var fromIndex = this.layers.indexOf(this.draglayer);
         this.layers.move(fromIndex, toIndex);

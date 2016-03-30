@@ -147,7 +147,7 @@ paper-dialog {
                 activelayers="{{layers}}"
                 account="{{account}}"
                 filters="{{filters}}"
-                xxon-active-layers-changed="layerChanged"
+                
             ></g-layercatalogus>
           </paper-dialog-scrollable>
           <div class="buttons">
@@ -217,25 +217,9 @@ paper-dialog {
         layers: {
          type: Array,
          value: function(){return [];},
-         //notify: true //no notify needed on lowest level,
-         observer: 'debuglayers'
+
        },
         moreInfo: { observer: 'moreInfoChanged' }
-      },
-      debuglayers: function(){
-          console.log('!! pico app');
-      },
-      layerChanged: function(e){
-        var self = this;
-        if(e&&e.detail&&e.detail.value.indexSplices) {
-          var splice = e.detail.value.indexSplices[0];
-          if (splice.addedCount >0 )
-          self.push('layers',splice.object[splice.index]);
-          //TODO: meer dan 1 record per keer
-          else
-          self.splice('layers',splice.index,1)
-        }
-
       },
       toggleDrawer: function (e) {
         this.$.drawerPanel.togglePanel();
