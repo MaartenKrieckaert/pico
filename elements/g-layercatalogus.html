@@ -106,6 +106,10 @@ paper-dropdown-menu,paper-dropdown {
           notify: true
 
         },
+        layers: {
+            type: Array,
+            value: function(){return []}
+        },
         docurl: {
           type: String,
           value: 'https://services.geodan.nl/document/api'
@@ -125,7 +129,10 @@ paper-dropdown-menu,paper-dropdown {
       },
       layersChanged: function(e){
         console.log(e.path, e.value);
-        
+        var layer = e.base[0];
+        var idx = this.layers.indexOf(layer);
+        var path = 'layers.'+idx+'.options.visibility';
+        this.set(path,e.value);
         /*
         if(e && e.path&& e.path.split('.').length >1 && e.path.split('.')[1].indexOf('#') >= 0) {
          this.set(e.path,e.value);
