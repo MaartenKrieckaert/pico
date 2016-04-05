@@ -16,18 +16,6 @@
   <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <dom-module id="g-layercatalogus">
   <style>
-    /* TODO(polyup): For speed, consider reworking these styles with .classes
-                     and #ids rather than [attributes].
-    */
-    [fit] {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-    }
-  </style>
-  <style>
 .layerItem{
     min-height:30px;
 }
@@ -73,8 +61,21 @@ paper-dropdown-menu,paper-dropdown {
 <template is="dom-if" if="{{_computeIf2(account)}}">
     <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
     <template is="dom-repeat" items="{{catalogus}}" as="group" id="layerList">
-    <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(group)}}<paper-ripple fit=""></paper-ripple></paper-item>
+    <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(group)}}</paper-item>
         <iron-collapse opened="{{group.opened}}">
+            <template is="dom-repeat" items="{{group.subgroup}}" as="sub" id="layerList">
+              <div class="subgroup"><paper-item class="groupTitle" on-click="toggle">{{sub.subname}}</paper-item>
+               <iron-collapse opened="{{subgroup.opened}}">
+                <template class='repeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layersubfilter(sub.subname,sub)}}">
+                
+                   <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}<paper-ripple></paper-ripple></paper-item>
+               
+                </template>
+                  </iron-collapse>
+              </div>
+            </template>
+            
+           
             <!-- temporarily no subgroups
             <template is="dom-repeat" items="{{layer.subgroup}}" as="sub">
             <div class="subGroup"><paper-item class="subGroupTitle" on-click="toggle">{{sub.subname}}<paper-ripple fit=""></paper-ripple></paper-item>
@@ -87,7 +88,7 @@ paper-dropdown-menu,paper-dropdown {
             </template>
             -->
             <template class='repeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layerfilter(group.group)}}">
-                 <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}<paper-ripple fit=""></paper-ripple></paper-item>
+                 <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}<paper-ripple></paper-ripple></paper-item>
             </template>
         </iron-collapse>
     </div>
@@ -124,7 +125,13 @@ paper-dropdown-menu,paper-dropdown {
       ],
       layerfilter: function(groupname){
           return function(layer){
+              if(!layer.options.config.subgroupName)
               return layer.options.config.groupName == groupname;
+          };
+      },
+      layersubfilter: function(subgroupName){
+          return function(layer){
+              return layer.options.config.subgroupName == subgroupName;
           };
       },
       layersChanged: function(e){
