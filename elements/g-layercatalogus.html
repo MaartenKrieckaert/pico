@@ -59,10 +59,10 @@ paper-dropdown-menu,paper-dropdown {
 </template>
 <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
 <template is="dom-repeat" items="{{catalogus}}" as="group" id="layerList">
-  <div class="group"><paper-item class="groupTitle" on-click="toggle">{{_computeLabel(group)}}</paper-item>
+  <div class="group"><paper-item class="groupTitle" on-click="toggle"><iron-icon icon$="{{_computeToggle(group.opened)}}"  item-icon></iron-icon>{{_computeLabel(group)}}</paper-item>
     <iron-collapse opened="{{group.opened}}">
       <template is="dom-repeat" items="{{group.subgroup}}" as="sub" id="layerList">
-        <div class="subgroup"><paper-item class="groupTitle" on-click="toggle">{{sub.subname}}</paper-item>
+        <div class="subgroup"><paper-item class="groupTitle" on-click="toggle"><iron-icon icon$="{{_computeToggle(sub.opened)}}"  item-icon></iron-icon>{{sub.subname}}</paper-item>
           <iron-collapse opened="{{sub.opened}}">
             <template class='repeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layersubfilter(sub.subname,sub)}}">
               <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}</paper-item>
@@ -119,7 +119,9 @@ paper-dropdown-menu,paper-dropdown {
       },
       layersChanged: function(e){   
         if(e && e.path&& e.path.split('.').length >1 && e.path.split('.')[1].indexOf('#') >= 0) {    
-          var idx = e.path.split('#')[1].split('.')[0];
+          var activeidx = e.path.split('#')[1].split('.')[0];
+          var layer = e.base[activeidx];
+          var idx = this.layers.indexOf(layer)
           var path = 'layers.#'+idx+'.options.visibility';
           this.set(path,e.value);       
           console.log(path);
@@ -238,8 +240,6 @@ paper-dropdown-menu,paper-dropdown {
         //the layerlist is a flat list with .groupName and .subgroupName attributes
         //it needs to be changed into a tree structure with group>subgroup>layer
         //or group>layer nodes
-        console.log(layerlist);
-        console.log(this.catalogus);
         var catId = 0;
         var self = this;
         if(this.catalogus) {
@@ -304,8 +304,7 @@ paper-dropdown-menu,paper-dropdown {
         }, []);
         catalogus.forEach(function(item){
           self.push('catalogus',item);
-        })
-        console.log(this.catalogus);
+        })        
         this.$.layerList.render();
       },
       //open/close core-collapses
@@ -352,14 +351,14 @@ paper-dropdown-menu,paper-dropdown {
       _computeIf: function (account, undefined) {
         return account.ID == undefined;
       },
-      _computeIf2: function (account, undefined) {
-        return account.ID != undefined;
-      },
       _computeLabel: function (layer) {
         return layer.group == null ? 'Generiek' : layer.group;
       },
       _computeIcon: function (l) {
         return l ? 'check-box' : 'check-box-outline-blank';
+      },
+      _computeToggle: function(g){
+        return g ? 'arrow-drop-up' : 'arrow-drop-down';
       }
     });
   </script>
