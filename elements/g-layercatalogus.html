@@ -57,21 +57,21 @@ paper-dropdown-menu,paper-dropdown {
 <template is="dom-if" if="{{_computeIf(account)}}">
     <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
-<paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
-<template is="dom-repeat" items="[[catalogus]]" as="group" id="layerList">
+<paper-input id="zoekVeld" value="{{search::input}}" label="Zoek een laag"></paper-input>
+<template is="dom-repeat" items="{{catalogus}}" as="group" id="layerList">
   <div class="group"><paper-item class="groupTitle" on-click="toggle"><iron-icon icon$="{{_computeToggle(group.opened)}}"  item-icon></iron-icon>{{_computeLabel(group)}}</paper-item>
     <iron-collapse opened="{{group.opened}}">
-      <template is="dom-repeat" id$="{{_computeId(index)}}" class='subrepeater' items="[[group.subgroup]]" as="sub">
+      <template is="dom-repeat" id$="{{_computeId(index)}}" class='subrepeater' items="{{group.subgroup}}" as="sub">
         <div class="subgroup"><paper-item class="groupTitle" on-click="toggle"><iron-icon icon$="{{_computeToggle(sub.opened)}}"  item-icon></iron-icon>{{sub.subname}}</paper-item>
           <iron-collapse opened="{{sub.opened}}">
-            <template class='layerrepeater' is="dom-repeat" items="[[sub.layers]]" as="l" idx="{{index}}" filter="{{layersubfilter(sub.subname,sub)}}">
-              <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}</paper-item>
+            <template class='layerrepeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layersubfilter(sub.subname,search)}}">
+              <paper-item class="layer" on-click="toggleLayer"><paper-checkbox checked$="{{l.options.visibility}}">{{l.options.config.title}}</paper-checkbox></paper-item>
             </template>
           </iron-collapse>
         </div>
       </template>
-      <template class='layerrepeater' is="dom-repeat" items="[[group.layers]]" as="l" idx="{{index}}" filter="{{layerfilter(group.group)}}">
-           <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}</paper-item>
+      <template class='layerrepeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layerfilter(group.group,search)}}">
+           <paper-item class="layer" on-click="toggleLayer"><paper-checkbox checked$="{{l.options.visibility}}">{{l.options.config.title}}</paper-checkbox></paper-item>
       </template>
     </iron-collapse>
   </div>
@@ -108,16 +108,43 @@ paper-dropdown-menu,paper-dropdown {
       observers: [
         'layersChanged(activelayers.*)'
       ],
-      layerfilter: function(groupname){
-          return function(layer){
-              if(!layer.options.config.subgroupName)
-              return layer.options.config.groupName == groupname;
-            else return false;
-          };
+      layerfilter: function(groupname,search){
+        return function(layer){
+          var found = false;
+          if (!search) {
+            // set filter to null to disable filtering
+            found = true;
+          } else {
+            // return a filter function for the current search string
+            search = search.toLowerCase();
+            var title = layer.options.config.title.toLowerCase();
+             
+            found = (title.indexOf(search) != -1);
+            
+          }
+          if(!layer.options.config.subgroupName&&found)
+            return layer.options.config.groupName == groupname;
+          else return false;
+        };
       },
-      layersubfilter: function(subgroupName){
+      layersubfilter: function(subgroupName,search){
           return function(layer){
+            var found = false;
+            if (!search) {
+              // set filter to null to disable filtering
+              found = true;
+            } else {
+              // return a filter function for the current search string
+              search = search.toLowerCase();
+              var title = layer.options.config.title.toLowerCase();
+               
+              found = (title.indexOf(search) != -1);
+              
+            }
+            if(found)
               return layer.options.config.subgroupName == subgroupName;
+            else return false;
+
           };
       },
       layersChanged: function(e){   
@@ -125,7 +152,7 @@ paper-dropdown-menu,paper-dropdown {
           var activeidx = e.path.split('#')[1].split('.')[0];
           var layer = e.base[activeidx];
           var idx = this.layers.indexOf(layer)
-          var path = 'layers.#'+idx+'.options.visibility';
+          var path = 'layers.'+idx+'.options.visibility';
           this.set(path,e.value);       
           console.log(path);
         }
@@ -359,7 +386,8 @@ paper-dropdown-menu,paper-dropdown {
         return layer.group == null ? 'Generiek' : layer.group;
       },
       _computeIcon: function (l) {
-        return l ? 'check-box' : 'check-box-outline-blank';
+
+        return l.options.visibility ? 'check-box' : 'check-box-outline-blank';
       },
       _computeToggle: function(g){
         return g ? 'arrow-drop-up' : 'arrow-drop-down';
