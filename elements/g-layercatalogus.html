@@ -58,19 +58,19 @@ paper-dropdown-menu,paper-dropdown {
     <p>U bent niet ingelogd, dus er zijn geen lagen beschikbaar.</p>
 </template>
 <paper-input id="zoekVeld" value="{{search}}" label="Zoek een laag"></paper-input>
-<template is="dom-repeat" items="{{catalogus}}" as="group" id="layerList">
+<template is="dom-repeat" items="[[catalogus]]" as="group" id="layerList">
   <div class="group"><paper-item class="groupTitle" on-click="toggle"><iron-icon icon$="{{_computeToggle(group.opened)}}"  item-icon></iron-icon>{{_computeLabel(group)}}</paper-item>
     <iron-collapse opened="{{group.opened}}">
-      <template is="dom-repeat" items="{{group.subgroup}}" as="sub" id="layerList">
+      <template is="dom-repeat" id$="{{_computeId(index)}}" class='subrepeater' items="[[group.subgroup]]" as="sub">
         <div class="subgroup"><paper-item class="groupTitle" on-click="toggle"><iron-icon icon$="{{_computeToggle(sub.opened)}}"  item-icon></iron-icon>{{sub.subname}}</paper-item>
           <iron-collapse opened="{{sub.opened}}">
-            <template class='repeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layersubfilter(sub.subname,sub)}}">
+            <template class='layerrepeater' is="dom-repeat" items="[[sub.layers]]" as="l" idx="{{index}}" filter="{{layersubfilter(sub.subname,sub)}}">
               <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}</paper-item>
             </template>
           </iron-collapse>
         </div>
       </template>
-      <template class='repeater' is="dom-repeat" items="{{layers}}" as="l" idx="{{index}}" filter="{{layerfilter(group.group)}}">
+      <template class='layerrepeater' is="dom-repeat" items="[[group.layers]]" as="l" idx="{{index}}" filter="{{layerfilter(group.group)}}">
            <paper-item class="layer" on-click="toggleLayer"><iron-icon icon$="{{_computeIcon(l.options.visibility)}}"  item-icon></iron-icon>{{l.options.config.title}}</paper-item>
       </template>
     </iron-collapse>
@@ -80,6 +80,9 @@ paper-dropdown-menu,paper-dropdown {
   <script>
     Polymer({
       is: 'g-layercatalogus',
+      _computeId: function(idx){
+        return 'test'+idx;
+      },
       properties: {
         account: {
           notify: true,
@@ -137,6 +140,7 @@ paper-dropdown-menu,paper-dropdown {
         var open = zoek == '' ? false : true;
         //to make sure all core-collapse are open when searching
         this.updateCatalogus(resultaat, open);
+
       },
       initialConfig: function (d) {
         var response = d.detail.response;
@@ -242,7 +246,7 @@ paper-dropdown-menu,paper-dropdown {
         //or group>layer nodes
         var catId = 0;
         var self = this;
-        if(this.catalogus) {
+                if(this.catalogus) {
           var length = this.catalogus.length;
           self.splice('catalogus',0,length);
         }
@@ -304,8 +308,8 @@ paper-dropdown-menu,paper-dropdown {
         }, []);
         catalogus.forEach(function(item){
           self.push('catalogus',item);
-        })        
-        this.$.layerList.render();
+        })
+        
       },
       //open/close core-collapses
       toggle: function (e) {
