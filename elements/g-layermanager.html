@@ -125,7 +125,7 @@ iron-collapse {
 </style>
   <template>
 <div class="container">
-<template is="dom-repeat" items="{{layersReversed}}" as="l" id="layerList">
+<template is="dom-repeat" items="{{layers}}" as="l" id="layerList" filter={{vis()}} sort=sort>
     <div draggable="true" if="{{l.options.visibility}}" on-dragstart="dragStart" on-dragover="allowDrop" on-dragenter="dragenter" on-dragleave="dragleave" on-dragend="dragend" on-drop="dragStop" class$="{{_computeClass(l)}}">
 
 
@@ -187,6 +187,15 @@ iron-collapse {
     };
     Polymer({
       is: 'g-layermanager',
+      vis: function(vis){
+        return function(layer){
+          return layer.options.visibility;
+        }
+      },
+      sort: function(a,b){
+        console.log(a,b)
+        //https://jcrowther.io/2015/06/09/polymer-dom-repeat-filtering-and-sorting/
+      },
       properties: {
         draglayer: { value: null },
         layers: {
@@ -201,7 +210,7 @@ iron-collapse {
         moreInfo: { notify: true }
       },
       observers: [
-        'layersChanged(layers.splices)'
+        'layersChanged(layers.*)'
       ],
       //filter to remove decimals
       roundZero: function (value) {
@@ -232,9 +241,11 @@ iron-collapse {
       layersChanged: function (e) {
         if (!e)
           return false;
-        var l = this.layers.slice();
-        l.reverse();
-        this.layersReversed = l;
+        //TODO order van input af vangen ofzo?
+        var l = this.layers.filter(function(layer){
+          return layer.options.visibility;
+        });
+        this.$.layerList.render();
         this.orderLayers();
 
       },
@@ -242,7 +253,7 @@ iron-collapse {
         var self = this;
         var map = this.map;
         for (var i = 0; i < this.layers.length; i++) {
-          if (this.layers[i]._map == null) {
+          if (this.layers[i]._map == null&&this.layers[i].options.visibility) {
             map.addLayer(this.layers[i]);            
           }
           this.layers[i].setZIndex(i);
@@ -257,6 +268,7 @@ iron-collapse {
         layer.setOpacity(layer.options.opacity);
       },
       ready: function () {
+        window.debugthat = this;
    //     this.layers = this.layers || [];
         this.map = this.map || {};
         this.moreInfo = this.moreInfo || '';
@@ -277,11 +289,12 @@ iron-collapse {
       },
       removeLayer: function (e, b, c) {
         var layer = e.model.l;
-        var idx = this.layers.length - e.model.index-1;
+        var idx = this.layers.indexOf(layer);//this.layers.length - e.model.index-1;
         var path = 'layers.'+idx+'.options.visibility';
-        this.set(path,false)
+        console.log(path);
+        this.set(path,false);
         this.map.removeLayer(layer);
-        this.splice('layers',this.layers.indexOf(layer), 1);
+       // this.splice('layers',this.layers.indexOf(layer), 1);
       },
       dragStart: function (e) {
         e.dataTransfer.effectAllowed = 'move';
@@ -335,16 +348,16 @@ iron-collapse {
         this.layers.move(fromIndex, toIndex);
       },
       _computeClass: function (l) {
-        return 'layer ' + l.options.minZoom > l._map._zoom ? 'zoomin' : 'visible';
+        return 'layer ' + l.options.minZoom > this.map._zoom ? 'zoomin' : 'visible';
       },
       _computeIf: function (l) {
-        return l.options.minZoom <= l._map._zoom;
+        return l.options.minZoom <= this.map._zoom;
       },
       _computeIf2: function (l) {
-        return l.options.minZoom > l._map._zoom;
+        return l.options.minZoom > this.map._zoom;
       },
       _computeIf3: function (l) {
-        return l.options.config.legendUrl && l.options.minZoom <= l._map._zoom;
+        return l.options.config.legendUrl && l.options.minZoom <= this.map._zoom;
       },
       _computeIf4: function (l, undefined) {
         return l.options.config.picoInfo !== undefined;
@@ -353,7 +366,7 @@ iron-collapse {
         return this.roundZero(l.options.opacity * 100);
       },
       _computeExpression2: function (l) {
-        return l.options.minZoom - l._map._zoom;
+        return l.options.minZoom - this.map._zoom;
       }
     });
   </script>
